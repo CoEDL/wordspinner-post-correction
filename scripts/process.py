@@ -1,12 +1,14 @@
 """
 Script to clean the HTML files
 """
-from bs4 import BeautifulSoup
 import html5lib
+import glob
+from pathlib import Path
 import re
+from bs4 import BeautifulSoup
 
 
-def main(soup: BeautifulSoup):
+def main(domain_dir: str, soup: BeautifulSoup):
     # Strip script and style tags
     [x.extract() for x in soup.findAll(['script', 'style'])]
 
@@ -48,12 +50,18 @@ def main(soup: BeautifulSoup):
     pretty_html = re.sub(url_pattern, url_replacement, pretty_html, flags=re.IGNORECASE)
 
     # Save the html
-    with open("../test/a-body-english/index.html", "w") as html_output_file:
+    output_path = Path(f"../test/{domain_dir}")
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    with output_path.joinpath("index.html").open("w") as html_output_file:
         html_output_file.write(pretty_html)
 
 
 if __name__ == "__main__":
-    # Open the html file
-    with open("../source/a-body-english/index.html") as html_input_file:
-        soup = BeautifulSoup(html_input_file, 'html5lib')
-        main(soup)
+    html_paths = Path('../source').glob('**/*.html')
+    for html_path in html_paths:
+        # get the subdir that the html file is in. This should be the domain and english version
+        domain_dir = html_path.parts[-2]
+        with open(html_path) as html_file:
+            soup = BeautifulSoup(html_file, 'html5lib')
+            main(domain_dir, soup)

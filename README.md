@@ -2,35 +2,34 @@
 
 ## Insert a named anchor for linking in the lang file
 
-Match the entry opening div, keep the name, not the wsumarcs- bit
+Match the entry opening div, keep the name, not the wsumarcs- bit.
 
 ```
 <div class=\"wsumarcs-entry\" id=\"wsumarcs-([a-z]+)\">
 ```
-
-Replace with 
-
+Replace with:
 ```
 <a name="$1"></a><div class="wsumarcs-entry" id="$1">
 ```
 
 ## Change the URL in the english file
 
-Remove the view php path and hash, replace with domain name in lowercase
+Remove the view php path and hash, replace with domain name in lowercase.
 
 ```
 /view.php\?domain=([ a-z]+)&hash=[\w]+
 ```
+Replace with:
 ```
 \L$1/index.html
 ```
 
-Then, replace space with - and insert index.html
+Then, replace space with - and insert index.html.
 
 ```
 <a href="([a-z]+) ([a-z]+)
 ```
-
+Replace with:
 ```
 <a href="../$1-$2/index.html
 ```
