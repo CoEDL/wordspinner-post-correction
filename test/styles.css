@@ -109,3 +109,34 @@
 .outline-num {
     color: #0AB45A
 }
+
+
+/* Ben's additions */
+body {
+    margin-right: 30%;
+}
+
+#menu {
+    position: fixed;
+    width: 25%;
+    right: 5px;
+}
+#menu li {
+    list-style-type: none;
+}
+#menu li a {
+    display: inline-block;
+    font-family: sans-serif;
+    padding-bottom: 1em;
+}
+
+header h1 {
+    margin: 2em 0;
+}
+a {
+    color: chocolate;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
