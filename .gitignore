@@ -1,4 +1,5 @@
 .idea
-source
-test
-zips
+source/
+test/
+zips/
+output/

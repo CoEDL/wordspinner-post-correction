@@ -82,7 +82,7 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     pretty_html = re.sub(url_pattern, url_replacement, pretty_html, flags=re.IGNORECASE)
 
     # Save the html
-    output_path = Path(f"../test/{domain_dir}")
+    output_path = Path(f"../output/{domain_dir}")
     output_path.mkdir(parents=True, exist_ok=True)
 
     with output_path.joinpath("index.html").open("w") as html_output_file:
