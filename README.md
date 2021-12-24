@@ -57,12 +57,14 @@ data-file="img/
 data-file="audio/
 ```
 
+Create a menu
+Create an index page
 
+Manually add a background image
 
 
 TODO 
-add a menu
-download images and audio
-set up folder structure
-
-
+fix menu regex to handle () in names for 
+    s-verbs-(inflecting)-english.zip
+    s-verbs-(inflecting).zip
+ 

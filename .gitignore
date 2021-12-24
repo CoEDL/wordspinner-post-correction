@@ -7,5 +7,18 @@ audio/
 images/
 tmp/
 
-output/*
-!output/_assets
+# Exclude the content.. its in Dropbox
+bilinarra-output/*
+bilinarra-zips/*
+gurindji-output/*
+gurindji-zips/*
+mudburra-output/*
+mudburra-zips/*
+ngarinyman-output/*
+ngarinyman-zips/*
+
+# Keep the assets
+!bilinarra-output/_assets
+!gurindji-output/_assets
+!mudburra-output/_assets
+!ngarinyman-output/_assets
