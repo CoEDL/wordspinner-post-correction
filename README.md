@@ -11,8 +11,7 @@ Match the entry opening div, keep the name, not the wsumarcs- bit
 Replace with 
 
 ```
-<a name="$1"></a>
-<div class="wsumarcs-entry" id="$1">
+<a name="$1"></a><div class="wsumarcs-entry" id="$1">
 ```
 
 ## Change the URL in the english file
@@ -23,7 +22,7 @@ Remove the view php path and hash, replace with domain name in lowercase
 /view.php\?domain=([ a-z]+)&hash=[\w]+
 ```
 ```
-\L$1
+\L$1/index.html
 ```
 
 Then, replace space with - and insert index.html
