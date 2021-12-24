@@ -65,9 +65,14 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     pretty_html = re.sub(audio_player_pattern, audio_player_replacement, pretty_html)
 
     # Fix audio player icons
-    audio_pattern = 'data-file="img/'
-    audio_replacement = 'data-file="../audio/'
+    audio_pattern = r'data-file="img/'
+    audio_replacement = r'data-file="../audio/'
     pretty_html = re.sub(audio_pattern, audio_replacement, pretty_html)
+
+    # Change img src path
+    image_pattern = r'src="img/'
+    image_replacement = r'src="../img/'
+    pretty_html = re.sub(image_pattern, image_replacement, pretty_html)
 
     # Add a named anchor
     anchor_pattern = r'<div class=\"wsumarcs-entry\" id=\"wsumarcs-([a-z]+)\">'

@@ -2,7 +2,10 @@
 source/
 test/
 zips/
+media/
+audio/
+images/
+tmp/
 
 output/*
 !output/assets
-!output/img
