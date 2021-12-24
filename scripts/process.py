@@ -3,12 +3,15 @@ Script to clean the HTML files
 """
 import html5lib
 import glob
+import os
 from pathlib import Path
 import re
+import zipfile
+
 from bs4 import BeautifulSoup
 
 
-def main(domain_dir: str, soup: BeautifulSoup):
+def main(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     # Strip script and style tags
     [x.extract() for x in soup.findAll(['script', 'style'])]
 
@@ -28,6 +31,9 @@ def main(domain_dir: str, soup: BeautifulSoup):
     stylesheet_tag.attrs["rel"] = "stylesheet"
     stylesheet_tag.attrs["href"] = "../styles.css"
     soup.head.insert(2, stylesheet_tag)
+
+    # Insert the menu
+    soup.body.insert(0, menu_tag)
 
     # Make it look nice (also makes it a str for regex)
     pretty_html = soup.prettify()
@@ -58,10 +64,37 @@ def main(domain_dir: str, soup: BeautifulSoup):
 
 
 if __name__ == "__main__":
-    html_paths = Path('../source').glob('**/*.html')
+    domains = []
+    # Unzip the archive files
+    zip_paths = Path("../zips").glob("**/*.zip")
+    for zip_path in zip_paths:
+        domain = zip_path.stem
+        domains.append(domain)
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(f"../source/{domain}")
+    domains.sort()
+    print(domains)
+
+    # Build a nav bar
+    menu_soup = BeautifulSoup("<div id='menu'></div>", "html5lib")
+    menu_tag = menu_soup.div
+    for domain in domains:
+        new_tag = menu_soup.new_tag("a", href=f"../{domain}/")
+
+        pattern = r"^[a-z]-(.*)"
+        replacemenet = lambda m: m.group(1).replace("-", " ")
+        link_text = re.sub(pattern, replacemenet, domain)
+        print(link_text)
+
+        new_tag.string = link_text
+        menu_tag.append(new_tag)
+
+    print(menu_tag)
+
+    # Prepare the HTML
+    html_paths = Path("../source").glob("**/*.html")
     for html_path in html_paths:
-        # get the subdir that the html file is in. This should be the domain and english version
         domain_dir = html_path.parts[-2]
         with open(html_path) as html_file:
-            soup = BeautifulSoup(html_file, 'html5lib')
-            main(domain_dir, soup)
+            soup = BeautifulSoup(html_file, "html5lib")
+            main(domain_dir, soup, menu_tag)
