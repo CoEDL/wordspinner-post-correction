@@ -96,14 +96,14 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
 
 def unzip_archives():
     domains = []
-    zip_paths = Path("../zips").glob("**/*.zip")
+    zip_paths = Path("../gurindji-zips").glob("**/*.zip")
     for zip_path in zip_paths:
         domain = zip_path.stem
 
         domains.append(domain.replace("-english", ""))
         domains_unique = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(f"../source/{domain}")
+            zip_ref.extractall(f"../tmp/{domain}")
     domains_unique.sort()
     return domains_unique
 
@@ -138,7 +138,7 @@ def build_menu(domains: List = [], is_index: bool = False):
 
 
 def iterate_htmls(menu_tag: str):
-    html_paths = Path("../source").glob("**/*.html")
+    html_paths = Path("../tmp").glob("**/*.html")
     for html_path in html_paths:
         domain_dir = html_path.parts[-2]
         with open(html_path) as html_file:
@@ -193,7 +193,6 @@ def build_index_file(domains):
 
 
 if __name__ == "__main__":
-    nav_path = "/bilinarra/dictionary"
     domains = unzip_archives()
     build_index_file(domains=domains)
     menu_tag = build_menu(domains=domains)

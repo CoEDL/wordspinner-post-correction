@@ -1,7 +1,4 @@
 .idea
-source/
-test/
-zips/
 media/
 audio/
 images/
@@ -22,3 +19,8 @@ ngarinyman-zips/*
 !gurindji-output/_assets
 !mudburra-output/_assets
 !ngarinyman-output/_assets
+
+!media/.keep
+!audio/.keep
+!images/.keep
+!tmp/.keep

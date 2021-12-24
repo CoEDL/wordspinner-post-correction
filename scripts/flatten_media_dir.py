@@ -1,7 +1,7 @@
 from pathlib import Path
 
 src_path = Path("../media/Dict_Images")
-target_path = Path("../images")
+target_path = Path("../gurindji-output/_img")
 
 for each_file in src_path.glob('**/*.jpg'):
     print(each_file)

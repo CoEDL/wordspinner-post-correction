@@ -68,3 +68,26 @@ fix menu regex to handle () in names for
     s-verbs-(inflecting)-english.zip
     s-verbs-(inflecting).zip
  
+
+
+# RUN
+
+make a language-output dir
+and language-zip dir
+make a tmp dir
+
+put the wordspinner zips in the zips dir
+
+## Flatten the media dir structure
+
+make _audio and _img dirs in language-output
+make a media dir
+move DICT_Audio & Headword_Sound dirs from dropbox to the  media folder
+change paths and media file ext in the flatten_media_dir script
+run it
+repeat for img
+
+## Prep the HTML
+Change gurindji-output and gurindji-zip dirs in the process script
+run it
+
