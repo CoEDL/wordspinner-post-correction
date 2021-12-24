@@ -91,3 +91,11 @@ repeat for img
 Change gurindji-output and gurindji-zip dirs in the process script
 run it
 
+
+Test it locally - might need to change httpd-custom.conf file in ~/Sites
+and `brew services restart httpd` 
+
+
+FUTURE 
+remove / increment duplicate ids
+make filenaes lowercase

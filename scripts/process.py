@@ -87,7 +87,7 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     pretty_html = re.sub(url_pattern, url_replacement, pretty_html, flags=re.IGNORECASE)
 
     # Save the html
-    output_path = Path(f"../gurindji-output/{domain_dir}")
+    output_path = Path(f"../bilinarra-output/{domain_dir}")
     output_path.mkdir(parents=True, exist_ok=True)
 
     with output_path.joinpath("index.html").open("w") as html_output_file:
@@ -96,7 +96,7 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
 
 def unzip_archives():
     domains = []
-    zip_paths = Path("../gurindji-zips").glob("**/*.zip")
+    zip_paths = Path("../bilinarra-zips").glob("**/*.zip")
     for zip_path in zip_paths:
         domain = zip_path.stem
 
@@ -148,7 +148,7 @@ def iterate_htmls(menu_tag: str):
 
 def build_index_file(domains):
     menu_tag = build_menu(domains=domains, is_index=True)
-    index_path = Path("../gurindji-output/index.html")
+    index_path = Path("../bilinarra-output/index.html")
     soup = BeautifulSoup("", "html5lib")
 
     # Set the page class so CSS can style the home page a little differently
