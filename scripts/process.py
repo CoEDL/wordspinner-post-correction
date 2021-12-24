@@ -30,13 +30,13 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     # Insert the dictionary script
     # note that this is just the audio player code, not the hash href code
     script_tag = soup.new_tag("script")
-    script_tag.attrs["src"] = "../script.js"
+    script_tag.attrs["src"] = "../assets/script.js"
     soup.head.insert(1, script_tag)
 
     # Insert new stylesheet link
     stylesheet_tag = soup.new_tag("link")
     stylesheet_tag.attrs["rel"] = "stylesheet"
-    stylesheet_tag.attrs["href"] = "../styles.css"
+    stylesheet_tag.attrs["href"] = "../assets/styles.css"
     soup.head.insert(2, stylesheet_tag)
 
     # Insert the menu

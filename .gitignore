@@ -2,4 +2,6 @@
 source/
 test/
 zips/
-output/
+
+output/*
+!output/assets
