@@ -30,13 +30,13 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     # Insert the dictionary script
     # note that this is just the audio player code, not the hash href code
     script_tag = soup.new_tag("script")
-    script_tag.attrs["src"] = "../assets/script.js"
+    script_tag.attrs["src"] = "../_assets/script.js"
     soup.head.insert(1, script_tag)
 
     # Insert new stylesheet link
     stylesheet_tag = soup.new_tag("link")
     stylesheet_tag.attrs["rel"] = "stylesheet"
-    stylesheet_tag.attrs["href"] = "../assets/styles.css"
+    stylesheet_tag.attrs["href"] = "../_assets/styles.css"
     soup.head.insert(2, stylesheet_tag)
 
     # Insert the menu
@@ -61,17 +61,17 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
 
     # Fix audio dir in player icons
     audio_player_pattern = "img/audio.png"
-    audio_player_replacement = "../img/audio.png"
+    audio_player_replacement = "../_img/audio.png"
     pretty_html = re.sub(audio_player_pattern, audio_player_replacement, pretty_html)
 
     # Fix audio player icons
     audio_pattern = r'data-file="img/'
-    audio_replacement = r'data-file="../audio/'
+    audio_replacement = r'data-file="../_audio/'
     pretty_html = re.sub(audio_pattern, audio_replacement, pretty_html)
 
     # Change img src path
     image_pattern = r'src="img/'
-    image_replacement = r'src="../img/'
+    image_replacement = r'src="../_img/'
     pretty_html = re.sub(image_pattern, image_replacement, pretty_html)
 
     # Add a named anchor
@@ -112,6 +112,12 @@ def build_menu(domains: List):
     menu_soup = BeautifulSoup("<div id='menu'></div>", "html5lib")
     menu_tag = menu_soup.div
 
+    home_group_tag = menu_soup.new_tag('li')
+    home_tag = menu_soup.new_tag("a", href=f"../")
+    home_tag.string = "Home"
+    home_group_tag.append(home_tag)
+    menu_tag.append(home_group_tag)
+
     for domain in domains:
         link_group_tag = menu_soup.new_tag('li')
         link_tag = menu_soup.new_tag("a", href=f"../{domain}/")
@@ -127,7 +133,6 @@ def build_menu(domains: List):
         link_group_tag.append(seperator_tag)
         link_group_tag.append(english_link_tag)
         menu_tag.append(link_group_tag)
-
     return menu_tag
 
 
@@ -140,9 +145,27 @@ def iterate_htmls(menu_tag: str):
             soup = BeautifulSoup(html_file, "html5lib")
             process_domain(domain_dir, soup, menu_tag)
 
+def build_index_file(menu_tag):
+    index_path = Path("../output/index.html")
+    soup = BeautifulSoup("", "html5lib")
+    # Set the page class so CSS can style the home page a little differently
+    body = soup.find("body")
+    body.attrs["id"] = "home"
+    # Add styles
+    stylesheet_tag = soup.new_tag("link")
+    stylesheet_tag.attrs["rel"] = "stylesheet"
+    stylesheet_tag.attrs["href"] = "_assets/styles.css"
+    soup.head.insert(0, stylesheet_tag)
+    # Add the menu
+    soup.append(menu_tag)
+    # Write the index file
+    with index_path.open("w") as index_file:
+        index_file.write(str(soup))
+
 
 if __name__ == "__main__":
     domains_unique = unzip_archives()
     menu_tag = build_menu(domains_unique)
-    iterate_htmls(menu_tag)
+    build_index_file(menu_tag)
+    # iterate_htmls(menu_tag)
     print("done")

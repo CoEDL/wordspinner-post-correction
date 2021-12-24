@@ -8,4 +8,4 @@ images/
 tmp/
 
 output/*
-!output/assets
+!output/_assets
