@@ -22,33 +22,6 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     # Strip script and style tags
     [x.extract() for x in soup.findAll(['script', 'style'])]
 
-    # Insert jQuery script link
-    jquery_tag = soup.new_tag("script")
-    jquery_tag.attrs["src"] = "https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
-    soup.head.insert(0, jquery_tag)
-
-    # Insert the dictionary script
-    # note that this is just the audio player code, not the hash href code
-    script_tag = soup.new_tag("script")
-    script_tag.attrs["src"] = "../_assets/script.js"
-    soup.head.insert(1, script_tag)
-
-    # Insert new stylesheet link
-    stylesheet_tag = soup.new_tag("link")
-    stylesheet_tag.attrs["rel"] = "stylesheet"
-    stylesheet_tag.attrs["href"] = "../_assets/styles.css"
-    soup.head.insert(2, stylesheet_tag)
-
-    # Insert the menu
-    soup.body.insert(0, menu_tag)
-
-    # Add a page header
-    header_tag = soup.new_tag("header")
-    title_tag = soup.new_tag("h1")
-    title_tag.string = make_domain_readable(domain_dir)
-    header_tag.append(title_tag)
-    soup.body.insert(1, header_tag)
-
     # Make it look nice (also makes it a str for regex)
     pretty_html = soup.prettify()
 
@@ -57,7 +30,6 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
      ⚫
     </span>'''
     pretty_html = re.sub(dot_pattern, '', pretty_html)
-
 
     # Fix audio dir in player icons
     audio_player_pattern = "img/audio.png"
@@ -86,27 +58,55 @@ def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
     url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
     pretty_html = re.sub(url_pattern, url_replacement, pretty_html, flags=re.IGNORECASE)
 
+    # # Insert the menu
+    # soup.body.insert(0, menu_tag)
+    # 
+    # # Add a page header
+    # title_tag = soup.new_tag("h1")
+    # title_tag.string = make_domain_readable(domain_dir)
+    # soup.body.insert(1, title_tag)
+
     # Save the html
-    output_path = Path(f"../bilinarra-output/{domain_dir}")
+    output_path = Path(f"../test-output/{domain_dir}")
     output_path.mkdir(parents=True, exist_ok=True)
+
 
     with output_path.joinpath("index.html").open("w") as html_output_file:
         html_output_file.write(pretty_html)
 
 
-def unzip_archives():
+def unzip_archives(zip_path: Path = None):
     domains = []
-    zip_paths = Path("../bilinarra-zips").glob("**/*.zip")
+    zip_paths = zip_path.glob("**/*.zip")
     for zip_path in zip_paths:
         domain = zip_path.stem
 
         domains.append(domain.replace("-english", ""))
-        domains_unique = list(set(domains))
+        domains = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(f"../tmp/{domain}")
-    domains_unique.sort()
-    return domains_unique
+    domains.sort()
+    return domains
 
+
+def build_index_file(language: str, domains: List[str]):
+    menu_tag = build_menu(domains=domains, is_index=True)
+    # Open the index template
+    with Path("../html_template/index.html").open("r") as template_file:
+        soup = BeautifulSoup(template_file, "html5lib")
+        print(str(soup))
+        # Set the page class so CSS can style the home page a little differently
+        # body = soup.find("body")
+        # body.attrs["id"] = "home"
+        #
+        # # Add page title
+        # title_tag = soup.new_tag("title")
+        # title_tag.string = "TEST Dictionary"
+        # soup.head.insert(0, title_tag)
+        #
+        # # Write the index file
+        # with Path("../test-output/index.html").open("w") as index_file:
+        #     index_file.write(soup.prettify())
 
 def build_menu(domains: List = [], is_index: bool = False):
     subdir = "./" if is_index else "../"
@@ -146,55 +146,13 @@ def iterate_htmls(menu_tag: str):
             soup = BeautifulSoup(html_file, "html5lib")
             process_domain(domain_dir, soup, menu_tag)
 
-def build_index_file(domains):
-    menu_tag = build_menu(domains=domains, is_index=True)
-    index_path = Path("../bilinarra-output/index.html")
-    soup = BeautifulSoup("", "html5lib")
-
-    # Set the page class so CSS can style the home page a little differently
-    body = soup.find("body")
-    body.attrs["id"] = "home"
-
-    meta_tag = soup.new_tag("meta")
-    meta_tag.attrs["charset"] = "UTF-8"
-    soup.head.insert(0, meta_tag)
-
-    # Add page title
-    title_tag = soup.new_tag("title")
-    title_tag.string = "Dictionary"
-    soup.head.insert(0, title_tag)
-
-    # Add styles
-    stylesheet_tag = soup.new_tag("link")
-    stylesheet_tag.attrs["rel"] = "stylesheet"
-    stylesheet_tag.attrs["href"] = "_assets/styles.css"
-    soup.head.insert(1, stylesheet_tag)
-
-    # Add a page header
-    header_tag = soup.new_tag("header")
-    title_tag = soup.new_tag("h1")
-    title_tag.string = "REPLACE LANGUAGE NAME"
-    header_tag.append(title_tag)
-    soup.body.insert(0, header_tag)
-
-    # Add page text
-    section_tag = soup.new_tag("section")
-    content_tag = soup.new_tag("p")
-    content_tag.string = "REPLACE CONTENT"
-    section_tag.append(content_tag)
-    soup.body.insert(1, section_tag)
-
-    # Add the menu
-    soup.body.insert(2, menu_tag)
-
-    # Write the index file
-    with index_path.open("w") as index_file:
-        index_file.write(soup.prettify())
-
 
 if __name__ == "__main__":
-    domains = unzip_archives()
-    build_index_file(domains=domains)
-    menu_tag = build_menu(domains=domains)
-    iterate_htmls(menu_tag)
+    #  language should make zip and output dirs eg gurindji-zip gurindji-output
+    language = "test"
+    zip_path = Path(f"../{language}-zips")
+    domains = unzip_archives(zip_path=zip_path)
+    build_index_file(language=language, domains=domains)
+    # menu_tag = build_menu(domains=domains)
+    # iterate_htmls(menu_tag)
     print("done")

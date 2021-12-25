@@ -13,12 +13,15 @@ mudburra-output/*
 mudburra-zips/*
 ngarinyman-output/*
 ngarinyman-zips/*
+test-output/*
+test-zips/*
 
 # Keep the assets
 !bilinarra-output/_assets
 !gurindji-output/_assets
 !mudburra-output/_assets
 !ngarinyman-output/_assets
+!test-output/_assets
 
 !media/.keep
 !audio/.keep
