@@ -1,8 +1,24 @@
+import shutil
 from pathlib import Path
 
-src_path = Path("../media/Dict_Images")
-target_path = Path("../gurindji-output/_img")
+language = "test"
+# language = "bilinarra"
+# language = "gurindji"
+# language = "mudburra"
+# language = "ngarinyman"
 
-for each_file in src_path.glob('**/*.jpg'):
+source_path = Path(f"../content/{language}")
+target_path = Path(f"../output/{language}/")
+
+target_path.joinpath("_audio").mkdir(parents=True, exist_ok=True)
+target_path.joinpath("_img").mkdir(parents=True, exist_ok=True)
+
+# Process audio
+for each_file in source_path.glob('**/*.mp3'):
     print(each_file)
-    each_file.rename(target_path.joinpath(each_file.name))
+    shutil.copy(each_file, target_path.joinpath("_audio"))
+
+# Process images
+for each_file in source_path.glob('**/*.jpg'):
+    print(each_file)
+    shutil.copy(each_file, target_path.joinpath("_img"))

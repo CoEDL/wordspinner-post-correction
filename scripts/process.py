@@ -9,8 +9,55 @@ import shutil
 import zipfile
 from pathlib import Path
 from typing import List
-
 from bs4 import BeautifulSoup
+
+
+def unzip_archives(zip_path: Path = None):
+    domains = []
+    zip_paths = zip_path.glob("**/*.zip")
+    for zip_path in zip_paths:
+        domain = zip_path.stem
+
+        domains.append(domain.replace("-english", ""))
+        domains = list(set(domains))
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(f"../tmp/{domain}")
+    domains.sort()
+    return domains
+
+
+def build_menu(domains: List, is_index: bool = False):
+    subdir = "./" if is_index else "../"
+    menu_soup = BeautifulSoup("<ul id='menu'></ul>", "html5lib")
+    menu_tag = menu_soup.ul
+
+    home_group_tag = menu_soup.new_tag('li')
+    home_tag = menu_soup.new_tag("a", href=subdir)
+    home_tag.string = "Home"
+    home_group_tag.append(home_tag)
+    menu_tag.append(home_group_tag)
+
+    for domain in domains:
+        link_group_tag = menu_soup.new_tag('li')
+        link_tag = menu_soup.new_tag("a", href=f"{subdir}{domain}/")
+        link_tag.string = make_domain_readable(domain)
+
+        seperator_tag = menu_soup.new_tag("span")
+        seperator_tag.string = " | "
+
+        english_link_tag = menu_soup.new_tag("a", href=f"{subdir}{domain}-english/")
+        english_link_tag.string = "English"
+
+        link_group_tag.append(link_tag)
+        link_group_tag.append(seperator_tag)
+        link_group_tag.append(english_link_tag)
+        menu_tag.append(link_group_tag)
+    return menu_tag
+
+
+def get_template(template_path: str) -> BeautifulSoup:
+    with Path(template_path).open("r") as template_file:
+        return BeautifulSoup(template_file, "html5lib")
 
 
 def make_domain_readable(domain: str) -> str:
@@ -90,20 +137,6 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
             html_output_file.write(template_soup.prettify())
 
 
-def unzip_archives(zip_path: Path = None):
-    domains = []
-    zip_paths = zip_path.glob("**/*.zip")
-    for zip_path in zip_paths:
-        domain = zip_path.stem
-
-        domains.append(domain.replace("-english", ""))
-        domains = list(set(domains))
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(f"../tmp/{domain}")
-    domains.sort()
-    return domains
-
-
 def build_index_file(language: List[str], domains: List[str]):
 
     # Slurp in the home page content
@@ -138,35 +171,6 @@ def build_index_file(language: List[str], domains: List[str]):
         index_file.write(template_soup.prettify())
 
 
-def build_menu(domains: List, is_index: bool = False):
-    subdir = "./" if is_index else "../"
-    menu_soup = BeautifulSoup("<ul id='menu'></ul>", "html5lib")
-    menu_tag = menu_soup.ul
-
-    home_group_tag = menu_soup.new_tag('li')
-    home_tag = menu_soup.new_tag("a", href=subdir)
-    home_tag.string = "Home"
-    home_group_tag.append(home_tag)
-    menu_tag.append(home_group_tag)
-
-    for domain in domains:
-        link_group_tag = menu_soup.new_tag('li')
-        link_tag = menu_soup.new_tag("a", href=f"{subdir}{domain}/")
-        link_tag.string = make_domain_readable(domain)
-
-        seperator_tag = menu_soup.new_tag("span")
-        seperator_tag.string = " | "
-
-        english_link_tag = menu_soup.new_tag("a", href=f"{subdir}{domain}-english/")
-        english_link_tag.string = "English"
-
-        link_group_tag.append(link_tag)
-        link_group_tag.append(seperator_tag)
-        link_group_tag.append(english_link_tag)
-        menu_tag.append(link_group_tag)
-    return menu_tag
-
-
 def iterate_htmls(language: List[str], domains: List[str]):
     # Build the menu for the content pages - they will have different path ../ vs ./ for index page
     menu_tag = build_menu(domains=domains, is_index=False)
@@ -176,15 +180,16 @@ def iterate_htmls(language: List[str], domains: List[str]):
         process_domain(language, html_path, menu_tag)
 
 
-def get_template(template_path: str) -> BeautifulSoup:
-    with Path(template_path).open("r") as template_file:
-        return BeautifulSoup(template_file, "html5lib")
-
-
 if __name__ == "__main__":
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
-    language = ["test", "Test"]
+    # language = ["test", "Test"]
+    # language = ["bilinarra", "Bilinarra"]
+    # language = ["gurindji", "Gurindji"]
+    # language = ["mudburra", "Mudburra"]
+    language = ["ngarinyman", "Ngarinyman"]
+
+    print(language[1])
 
     # Create output dir and copy assets from the template
     output_dir = Path(f"../output/{language[0]}")
