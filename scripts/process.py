@@ -18,61 +18,75 @@ def make_domain_readable(domain: str) -> str:
     return re.sub(pattern, replacemenet, domain)
 
 
-def process_domain(domain_dir: str, soup: BeautifulSoup, menu_tag: str):
-    # Strip script and style tags
-    [x.extract() for x in soup.findAll(['script', 'style'])]
+def process_domain(language: List[str], html_path: str, menu_tag: str):
+    domain_dir = html_path.parts[-2]
+    print(domain_dir)
+    with open(html_path) as html_file:
+        # This is the wordspinner generated content. It needs to be cleaned
+        content_soup = BeautifulSoup(html_file, "html.parser")
 
-    # Make it look nice (also makes it a str for regex)
-    pretty_html = soup.prettify()
+        # Strip script and style tags
+        [x.extract() for x in content_soup.findAll(['script', 'style'])]
 
-    # Remove weird big dot
-    dot_pattern = '''<span style="font-size:0.5em;position:relative;bottom:3px;">
-     ⚫
-    </span>'''
-    pretty_html = re.sub(dot_pattern, '', pretty_html)
+        # Remove weird big dot
+        dot_pattern = '<span style="font-size:0.5em;position:relative;bottom:3px;">⚫</span>'
+        html = re.sub(dot_pattern, '<br />', str(content_soup))
 
-    # Fix audio dir in player icons
-    audio_player_pattern = "img/audio.png"
-    audio_player_replacement = "../_img/audio.png"
-    pretty_html = re.sub(audio_player_pattern, audio_player_replacement, pretty_html)
+        # Fix audio dir in player icons
+        audio_player_pattern = "img/audio.png"
+        audio_player_replacement = "../_img/audio.png"
+        html = re.sub(audio_player_pattern, audio_player_replacement, html)
 
-    # Fix audio player icons
-    audio_pattern = r'data-file="img/'
-    audio_replacement = r'data-file="../_audio/'
-    pretty_html = re.sub(audio_pattern, audio_replacement, pretty_html)
+        # Fix audio player icons
+        audio_pattern = r'data-file="img/'
+        audio_replacement = r'data-file="../_audio/'
+        html = re.sub(audio_pattern, audio_replacement, html)
 
-    # Change img src path
-    image_pattern = r'src="img/'
-    image_replacement = r'src="../_img/'
-    pretty_html = re.sub(image_pattern, image_replacement, pretty_html)
+        # Change img src path
+        image_pattern = r'src="img/'
+        image_replacement = r'src="../_img/'
+        html = re.sub(image_pattern, image_replacement, html)
 
-    # Add a named anchor
-    anchor_pattern = r'<div class=\"wsumarcs-entry\" id=\"wsumarcs-([a-z]+)\">'
-    anchor_replacement = r'<a id="\1"></a><div class="wsumarcs-entry" id="\1">'
-    pretty_html = re.sub(anchor_pattern, anchor_replacement, pretty_html, flags=re.IGNORECASE)
+        # Add a named anchor for english to language page linking
+        anchor_pattern = r'<div class=\"wsumarcs-entry\" id=\"wsumarcs-([a-z]+)\">'
+        anchor_replacement = r'<a id="\1"></a><div class="wsumarcs-entry" id="\1">'
+        html = re.sub(anchor_pattern, anchor_replacement, html, flags=re.IGNORECASE)
 
-    # Change english file link URLs
-    # Expects the domain-english dir to be sibling to domain dir
-    # TODO may need to change this to suit subdir deployment on the server?
-    url_pattern = r'/view.php\?domain=([ a-z]+)\&amp;hash=[\w]+'
-    url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
-    pretty_html = re.sub(url_pattern, url_replacement, pretty_html, flags=re.IGNORECASE)
+        # Change english file link URLs
+        # TODO may need to change this to suit subdir deployment on the server?
+        url_pattern = r'/view.php\?domain=([ a-z]+)\&amp;hash=[\w]+'
+        url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
+        html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
 
-    # # Insert the menu
-    # soup.body.insert(0, menu_tag)
-    # 
-    # # Add a page header
-    # title_tag = soup.new_tag("h1")
-    # title_tag.string = make_domain_readable(domain_dir)
-    # soup.body.insert(1, title_tag)
+        # Make a soup tag for the fixed content
+        content_tag = BeautifulSoup(html, "html.parser")
 
-    # Save the html
-    output_path = Path(f"../test-output/{domain_dir}")
-    output_path.mkdir(parents=True, exist_ok=True)
+        # Get the page template
+        template_soup = get_template(template_path = "../html_template/content.html")
 
+        # Change the page title
+        article_tag = template_soup.find("title")
+        article_tag.string = f"{language[1]} dictionary | {make_domain_readable(domain_dir)}"
 
-    with output_path.joinpath("index.html").open("w") as html_output_file:
-        html_output_file.write(pretty_html)
+        # Insert the menu
+        nav_tag = template_soup.find("nav")
+        nav_tag.append(menu_tag)
+
+        # Change the page header
+        header_tag = template_soup.find("header")
+        header_tag.string = make_domain_readable(domain_dir)
+
+        # Insert the content
+        article_tag = template_soup.find("article")
+        article_tag.string = ""
+        article_tag.append(content_tag)
+
+        # Save the html
+        output_path = Path(f"../{language[0]}-output/{domain_dir}")
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        with output_path.joinpath("index.html").open("w") as html_output_file:
+            html_output_file.write(template_soup.prettify())
 
 
 def unzip_archives(zip_path: Path = None):
@@ -89,29 +103,44 @@ def unzip_archives(zip_path: Path = None):
     return domains
 
 
-def build_index_file(language: str, domains: List[str]):
-    menu_tag = build_menu(domains=domains, is_index=True)
-    # Open the index template
-    with Path("../html_template/index.html").open("r") as template_file:
-        soup = BeautifulSoup(template_file, "html5lib")
-        print(str(soup))
-        # Set the page class so CSS can style the home page a little differently
-        # body = soup.find("body")
-        # body.attrs["id"] = "home"
-        #
-        # # Add page title
-        # title_tag = soup.new_tag("title")
-        # title_tag.string = "TEST Dictionary"
-        # soup.head.insert(0, title_tag)
-        #
-        # # Write the index file
-        # with Path("../test-output/index.html").open("w") as index_file:
-        #     index_file.write(soup.prettify())
+def build_index_file(language: List[str], domains: List[str]):
 
-def build_menu(domains: List = [], is_index: bool = False):
+    # TODO Slurp in the home page content
+    with Path(f"../{language[0]}-content/home.html").open("r") as content_file:
+        content_tag = BeautifulSoup(content_file, "html.parser")
+
+    # Build the menu for the index page - it will have different path ./ vs ../ for content pages
+    menu_tag = build_menu(domains=domains, is_index=True)
+
+    # Build the page
+    template_soup = get_template()
+
+    # Add page title
+    title_tag = template_soup.find("title")
+    title_tag.string = f"{language[1]} dictionary"
+
+    # Change the page header
+    header_tag = template_soup.find("header")
+    header_tag.string = f"{language[1]} dictionary"
+
+    # Insert the menu
+    nav_tag = template_soup.find("nav")
+    nav_tag.append(menu_tag)
+
+    # Insert the content
+    article_tag = template_soup.find("article")
+    article_tag.string = ""
+    article_tag.append(content_tag)
+
+    # Write the index file
+    with Path(f"../{language[0]}-output/index.html").open("w") as index_file:
+        index_file.write(template_soup.prettify())
+
+
+def build_menu(domains: List, is_index: bool = False):
     subdir = "./" if is_index else "../"
-    menu_soup = BeautifulSoup("<div id='menu'></div>", "html5lib")
-    menu_tag = menu_soup.div
+    menu_soup = BeautifulSoup("<ul id='menu'></ul>", "html5lib")
+    menu_tag = menu_soup.ul
 
     home_group_tag = menu_soup.new_tag('li')
     home_tag = menu_soup.new_tag("a", href=subdir)
@@ -137,22 +166,28 @@ def build_menu(domains: List = [], is_index: bool = False):
     return menu_tag
 
 
-def iterate_htmls(menu_tag: str):
+def iterate_htmls(language: List[str], domains: List[str]):
+    # Build the menu for the content pages - they will have different path ../ vs ./ for index page
+    menu_tag = build_menu(domains=domains, is_index=False)
+    # Build each domain page
     html_paths = Path("../tmp").glob("**/*.html")
     for html_path in html_paths:
-        domain_dir = html_path.parts[-2]
-        with open(html_path) as html_file:
-            print(html_path)
-            soup = BeautifulSoup(html_file, "html5lib")
-            process_domain(domain_dir, soup, menu_tag)
+        process_domain(language, html_path, menu_tag)
+
+
+def get_template(template_path: str = "../html_template/index.html") -> BeautifulSoup:
+    with Path(template_path).open("r") as template_file:
+        return BeautifulSoup(template_file, "html5lib")
 
 
 if __name__ == "__main__":
-    #  language should make zip and output dirs eg gurindji-zip gurindji-output
-    language = "test"
-    zip_path = Path(f"../{language}-zips")
+    # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
+    # Second element is human-readable version
+    language = ["test", "Test"]
+
+    zip_path = Path(f"../{language[0]}-content/zips")
     domains = unzip_archives(zip_path=zip_path)
+
     build_index_file(language=language, domains=domains)
-    # menu_tag = build_menu(domains=domains)
-    # iterate_htmls(menu_tag)
+    iterate_htmls(language=language, domains=domains)
     print("done")
