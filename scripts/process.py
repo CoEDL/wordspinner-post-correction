@@ -36,7 +36,6 @@ def build_menu(domains: List, is_index: bool = False):
     home_tag.string = "Home"
     home_group_tag.append(home_tag)
     menu_tag.append(home_group_tag)
-    print(domains)
     for domain in domains:
         link_group_tag = menu_soup.new_tag('li')
         link_tag = menu_soup.new_tag("a", href=f"{subdir}{domain}/")
@@ -183,11 +182,11 @@ def iterate_htmls(language: List[str], domains: List[str]):
 if __name__ == "__main__":
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
-    language = ["test", "Test"]
+    # language = ["test", "Test"]
     # language = ["bilinarra", "Bilinarra"]
     # language = ["gurindji", "Gurindji"]
     # language = ["mudburra", "Mudburra"]
-    # language = ["ngarinyman", "Ngarinyman"]
+    language = ["ngarinyman", "Ngarinyman"]
 
     print(language[1])
 
