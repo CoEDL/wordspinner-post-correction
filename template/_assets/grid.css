@@ -63,5 +63,5 @@ header,
 nav,
 article,
 footer {
-    outline: 1px solid pink;
+    padding: 1em;
 }

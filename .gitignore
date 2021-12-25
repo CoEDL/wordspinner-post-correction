@@ -1,29 +1,11 @@
 .idea
-media/
-audio/
-images/
-tmp/
+content/*
+media/*
+output/*
+tmp/*
 
-# Exclude the content.. its in Dropbox
-bilinarra-output/*
-bilinarra-zips/*
-gurindji-output/*
-gurindji-zips/*
-mudburra-output/*
-mudburra-zips/*
-ngarinyman-output/*
-ngarinyman-zips/*
-test-output/*
-test-zips/*
-
-# Keep the assets
-!bilinarra-output/_assets
-!gurindji-output/_assets
-!mudburra-output/_assets
-!ngarinyman-output/_assets
-!test-output/_assets
+# Keep the folders themselves
 
 !media/.keep
-!audio/.keep
-!images/.keep
+!output/.keep
 !tmp/.keep

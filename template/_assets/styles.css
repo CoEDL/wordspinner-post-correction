@@ -111,47 +111,12 @@
 }
 
 /* Ben's additions */
-body {
-    height: 100%;
-    width: 100%;
+.main-head {
+    font-size: 3rem;
+    font-weight: bold;
 }
-
-body#home {
-    margin-left: 0;
-}
-
-#menu {
-    position: fixed;
-    top: 5px;
-    bottom: 5px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    padding: 2em 1em;
-    width: 25%;
-    left: 5px;
-    font-size: 0.8em;
-}
-
-#menu li {
-    list-style-type: none;
-}
-
-#menu li a {
-    display: inline-block;
-    font-family: sans-serif;
-    padding-bottom: 1em;
-}
-
-header h1 {
-    padding-left: 30%;
-    margin: 1em 16px;
-}
-
-#home header {
-}
-
-#home header h1 {
-    margin-left: 0;
+.main-content section {
+    max-width: 60.0rem;
 }
 
 #feature_image {
@@ -162,23 +127,8 @@ header h1 {
     width: 100%;
 }
 
-#home section {
-    padding-left: 30%;
-    max-width: 60%;
-}
-
-a {
-    color: chocolate;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
 .wsumarcs-entry {
     /*padding: 1em !important;*/
-    padding-left: 30%;
     max-width: 60%;
     border-bottom: none !important;
     border-radius: 0.2em;
