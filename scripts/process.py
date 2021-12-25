@@ -36,7 +36,7 @@ def build_menu(domains: List, is_index: bool = False):
     home_tag.string = "Home"
     home_group_tag.append(home_tag)
     menu_tag.append(home_group_tag)
-
+    print(domains)
     for domain in domains:
         link_group_tag = menu_soup.new_tag('li')
         link_tag = menu_soup.new_tag("a", href=f"{subdir}{domain}/")
@@ -102,7 +102,7 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
 
         # Change english file link URLs
         # TODO may need to change this to suit subdir deployment on the server?
-        url_pattern = r'/view.php\?domain=([ a-z]+)\&amp;hash=[\w]+'
+        url_pattern = r'/view.php\?domain=([ a-z\(\)]+)\&amp;hash=[\w]+'
         url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
         html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
 
@@ -183,13 +183,16 @@ def iterate_htmls(language: List[str], domains: List[str]):
 if __name__ == "__main__":
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
-    # language = ["test", "Test"]
+    language = ["test", "Test"]
     # language = ["bilinarra", "Bilinarra"]
     # language = ["gurindji", "Gurindji"]
     # language = ["mudburra", "Mudburra"]
-    language = ["ngarinyman", "Ngarinyman"]
+    # language = ["ngarinyman", "Ngarinyman"]
 
     print(language[1])
+
+    # Reset tmp
+    shutil.rmtree("../tmp")
 
     # Create output dir and copy assets from the template
     output_dir = Path(f"../output/{language[0]}")
@@ -204,9 +207,12 @@ if __name__ == "__main__":
 
     # Prepare the domain zips
     zip_path = Path(f"../content/{language[0]}/zips")
+    print(f"zip_path {zip_path}")
     domains = unzip_archives(zip_path=zip_path)
 
     # Now build the html pages
+    print("build_index_file")
     build_index_file(language=language, domains=domains)
+    print("iterate_htmls")
     iterate_htmls(language=language, domains=domains)
     print("done")
