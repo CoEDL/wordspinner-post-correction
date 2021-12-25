@@ -8,4 +8,5 @@ tmp/*
 
 !content/.keep
 !media/.keep
+!output/index.html
 !tmp/.keep
