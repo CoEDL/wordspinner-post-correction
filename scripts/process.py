@@ -194,7 +194,8 @@ if __name__ == "__main__":
         print(f"**** Doing {language[1]} ****")
 
         # Reset tmp
-        shutil.rmtree("../tmp")
+        if Path("../tmp").is_dir():
+            shutil.rmtree("../tmp")
 
         # Create output dir and copy assets from the template
         output_dir = Path(f"../output/{language[0]}")
