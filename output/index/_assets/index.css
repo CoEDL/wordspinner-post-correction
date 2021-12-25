@@ -1,0 +1,70 @@
+
+/* - - - - - Grid - - - - - */
+
+.wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1px;
+    width: 100vw;
+    height: 100vh;
+}
+
+@media only screen and (max-width: 800px) {
+    .wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+    }
+}
+
+
+/* - - - - - Decoration - - - - - */
+
+.wrapper {
+    background-color: black;
+}
+
+.main-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+h1 {
+    background-color: rgba(255, 163, 60, 0.8);
+    padding: 0.2em;
+    border-radius: 0.2em;
+}
+
+a {
+    color: black;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.tl {
+    background-image: url("bilinarra.jpg");
+}
+
+.tr {
+    background-image: url("gurindji.jpg");
+}
+
+.bl {
+    background-image: url("mudburra.jpg");
+}
+
+.br {
+    background-image: url("ngarinyman.jpg");
+}
+
+
+
+
