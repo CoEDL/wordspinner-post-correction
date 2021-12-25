@@ -6,6 +6,6 @@ tmp/*
 
 # Keep the folders themselves
 
+!content/.keep
 !media/.keep
-!output/.keep
 !tmp/.keep

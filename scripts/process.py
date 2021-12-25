@@ -4,9 +4,10 @@ Script to clean the HTML files
 import html5lib
 import glob
 import os
-from pathlib import Path
 import re
+import shutil
 import zipfile
+from pathlib import Path
 from typing import List
 
 from bs4 import BeautifulSoup
@@ -34,7 +35,7 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
 
         # Fix audio dir in player icons
         audio_player_pattern = "img/audio.png"
-        audio_player_replacement = "../_img/audio.png"
+        audio_player_replacement = "../_assets/audio.png"
         html = re.sub(audio_player_pattern, audio_player_replacement, html)
 
         # Fix audio player icons
@@ -62,7 +63,7 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
         content_tag = BeautifulSoup(html, "html.parser")
 
         # Get the page template
-        template_soup = get_template(template_path = "../html_template/content.html")
+        template_soup = get_template(template_path = "../template/content.html")
 
         # Change the page title
         article_tag = template_soup.find("title")
@@ -82,7 +83,7 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
         article_tag.append(content_tag)
 
         # Save the html
-        output_path = Path(f"../{language[0]}-output/{domain_dir}")
+        output_path = Path(f"../output/{language[0]}/{domain_dir}")
         output_path.mkdir(parents=True, exist_ok=True)
 
         with output_path.joinpath("index.html").open("w") as html_output_file:
@@ -105,15 +106,15 @@ def unzip_archives(zip_path: Path = None):
 
 def build_index_file(language: List[str], domains: List[str]):
 
-    # TODO Slurp in the home page content
-    with Path(f"../{language[0]}-content/home.html").open("r") as content_file:
+    # Slurp in the home page content
+    with Path(f"../content/{language[0]}/home.html").open("r") as content_file:
         content_tag = BeautifulSoup(content_file, "html.parser")
 
     # Build the menu for the index page - it will have different path ./ vs ../ for content pages
     menu_tag = build_menu(domains=domains, is_index=True)
 
     # Build the page
-    template_soup = get_template()
+    template_soup = get_template(template_path = "../template/index.html")
 
     # Add page title
     title_tag = template_soup.find("title")
@@ -133,7 +134,7 @@ def build_index_file(language: List[str], domains: List[str]):
     article_tag.append(content_tag)
 
     # Write the index file
-    with Path(f"../{language[0]}-output/index.html").open("w") as index_file:
+    with Path(f"../output/{language[0]}/index.html").open("w") as index_file:
         index_file.write(template_soup.prettify())
 
 
@@ -175,7 +176,7 @@ def iterate_htmls(language: List[str], domains: List[str]):
         process_domain(language, html_path, menu_tag)
 
 
-def get_template(template_path: str = "../html_template/index.html") -> BeautifulSoup:
+def get_template(template_path: str) -> BeautifulSoup:
     with Path(template_path).open("r") as template_file:
         return BeautifulSoup(template_file, "html5lib")
 
@@ -185,9 +186,22 @@ if __name__ == "__main__":
     # Second element is human-readable version
     language = ["test", "Test"]
 
-    zip_path = Path(f"../{language[0]}-content/zips")
+    # Create output dir and copy assets from the template
+    output_dir = Path(f"../output/{language[0]}")
+    shutil.copytree("../template/_assets", output_dir.joinpath("_assets"), dirs_exist_ok=True)
+
+    # Copy the feature image from the content folder
+    shutil.copy(f"../content/{language[0]}/feature.jpg", output_dir.joinpath("_assets"))
+
+    # Create media dirs but they will need to be manually filled
+    output_dir.joinpath("_img").mkdir(parents=True, exist_ok=True)
+    output_dir.joinpath("_audio").mkdir(parents=True, exist_ok=True)
+
+    # Prepare the domain zips
+    zip_path = Path(f"../content/{language[0]}/zips")
     domains = unzip_archives(zip_path=zip_path)
 
+    # Now build the html pages
     build_index_file(language=language, domains=domains)
     iterate_htmls(language=language, domains=domains)
     print("done")
