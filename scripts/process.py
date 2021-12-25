@@ -182,36 +182,39 @@ def iterate_htmls(language: List[str], domains: List[str]):
 if __name__ == "__main__":
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
-    # language = ["test", "Test"]
-    # language = ["bilinarra", "Bilinarra"]
-    # language = ["gurindji", "Gurindji"]
-    # language = ["mudburra", "Mudburra"]
-    language = ["ngarinyman", "Ngarinyman"]
+    # languages = [["test", "Test"]]
 
-    print(language[1])
+    languages = [
+        ["bilinarra", "Bilinarra"],
+        ["gurindji", "Gurindji"],
+        ["mudburra", "Mudburra"],
+        ["ngarinyman", "Ngarinyman"]]
 
-    # Reset tmp
-    shutil.rmtree("../tmp")
+    for language in languages:
+        print(f"**** Doing {language[1]} ****")
 
-    # Create output dir and copy assets from the template
-    output_dir = Path(f"../output/{language[0]}")
-    shutil.copytree("../template/_assets", output_dir.joinpath("_assets"), dirs_exist_ok=True)
+        # Reset tmp
+        shutil.rmtree("../tmp")
 
-    # Copy the feature image from the content folder
-    shutil.copy(f"../content/{language[0]}/feature.jpg", output_dir.joinpath("_assets"))
+        # Create output dir and copy assets from the template
+        output_dir = Path(f"../output/{language[0]}")
+        shutil.copytree("../template/_assets", output_dir.joinpath("_assets"), dirs_exist_ok=True)
 
-    # Create media dirs but they will need to be manually filled
-    output_dir.joinpath("_img").mkdir(parents=True, exist_ok=True)
-    output_dir.joinpath("_audio").mkdir(parents=True, exist_ok=True)
+        # Copy the feature image from the content folder
+        shutil.copy(f"../content/{language[0]}/feature.jpg", output_dir.joinpath("_assets"))
 
-    # Prepare the domain zips
-    zip_path = Path(f"../content/{language[0]}/zips")
-    print(f"zip_path {zip_path}")
-    domains = unzip_archives(zip_path=zip_path)
+        # Create media dirs but they will need to be manually filled
+        output_dir.joinpath("_img").mkdir(parents=True, exist_ok=True)
+        output_dir.joinpath("_audio").mkdir(parents=True, exist_ok=True)
 
-    # Now build the html pages
-    print("build_index_file")
-    build_index_file(language=language, domains=domains)
-    print("iterate_htmls")
-    iterate_htmls(language=language, domains=domains)
-    print("done")
+        # Prepare the domain zips
+        zip_path = Path(f"../content/{language[0]}/zips")
+        print(f"zip_path {zip_path}")
+        domains = unzip_archives(zip_path=zip_path)
+
+        # Now build the html pages
+        print("==== Build index file ====")
+        build_index_file(language=language, domains=domains)
+        print("==== Iterate htmls ====")
+        iterate_htmls(language=language, domains=domains)
+        print("done\n\n")
