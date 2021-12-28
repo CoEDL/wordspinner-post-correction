@@ -1,8 +1,9 @@
 """
-for each html
-match all img src
-iterate and check if file exists
+Make a list of all the dictinoary images we have.
+For each domain (html), get all images.
+Compile a report of all the ones that are not in the master list.
 """
+
 import csv
 from pathlib import Path
 import shutil
@@ -28,7 +29,6 @@ def main(language: str):
         with Path(html_path).open("r") as html_file:
             soup = BeautifulSoup(html_file, "html5lib")
             images = [image for image in soup.select(".wsumarcs-entry img.wsumarcs-comPic")]
-            # print(images)
         for image in images:
             image_src = image["src"].replace("../_img/", "")
             entry = image.find_parent("div")
@@ -45,8 +45,7 @@ def main(language: str):
     with Path(f"../reports/images/report-{language}.csv").open("w", newline='') as csvfile:
         headers = ["Language", "Entry", "Image", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
-        writer.writeheader()  # file doesn't exist yet, write a header
-
+        writer.writeheader()
         for entry_id, image_src, domain in missing:
             writer.writerow({"Language": language,
                              "Entry": entry_id,
