@@ -23,9 +23,9 @@ def process_audio(source_path: Path = None, target_path: Path = None):
 
 if __name__ == "__main__":
 
-    DEBUG = True
+    debug = True
 
-    if DEBUG:
+    if debug:
         languages = [["test", "Test"]]
     else:
         languages = [
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     target_image_path = Path(f"../all_images/_img")
     target_image_path.mkdir(parents=True, exist_ok=True)
-    # process_images(source_path=source_path, target_path=target_image_path)
+    process_images(source_path=source_path, target_path=target_image_path)
 
     for language in languages:
         target_audio_path = Path(f"../all_audio/{language[0]}/_audio")

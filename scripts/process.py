@@ -19,12 +19,21 @@ from bs4 import BeautifulSoup
 
 
 def compile_images_on_disk_list(image_dir: Path = ""):
-    # Make a list of all the image files we have
+    # Make a list of all the image files we have for all languages
     images_on_disk = []
     images_on_disk_paths = image_dir.glob("**/*.jpg")
     for images_on_disk_path in images_on_disk_paths:
         images_on_disk.append(images_on_disk_path.name.lower())
     return(images_on_disk)
+
+
+def compile_audio_on_disk_list(audio_dir: Path = ""):
+    # Make a list of all the audio files we have for this language
+    audio_on_disk = []
+    audio_on_disk_paths = audio_dir.glob("**/*.mp3")
+    for audio_on_disk_path in audio_on_disk_paths:
+        audio_on_disk.append(audio_on_disk_path.name.lower())
+    return(audio_on_disk)
 
 
 def unzip_archives(zip_path: Path = None):
@@ -82,7 +91,7 @@ def make_domain_readable(domain: str) -> str:
 
 def write_missing_report(type: str = "", language: str = "", missing: List[List[str]] = None):
     print("*** write_missing_report")
-    csv_path = Path(f"../reports/{type}/report-{language}.csv")
+    csv_path = Path(f"../reports/{language}-{type}-report.csv")
     with csv_path.open("a", newline='') as csvfile:
         headers = ["Language", "Entry", "Src", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
@@ -96,7 +105,12 @@ def write_missing_report(type: str = "", language: str = "", missing: List[List[
                              "Domain": domain})
 
 
-def process_domain(language: List[str], html_path: Path, menu_tag: str, images_on_disk: List[str]):
+def process_domain(language: List[str],
+                   html_path: Path,
+                   menu_tag: str,
+                   images_on_disk: List[str],
+                   audio_on_disk: List[str]
+                   ):
     domain_dir = html_path.parts[-2]
     print(domain_dir)
     with open(html_path) as html_file:
@@ -136,7 +150,6 @@ def process_domain(language: List[str], html_path: Path, menu_tag: str, images_o
         html = re.sub(anchor_pattern, anchor_replacement, html, flags=re.IGNORECASE)
 
         # Change english file link URLs
-        # TODO may need to change this to suit subdir deployment on the server?
         url_pattern = r'/view.php\?domain=([ a-z\(\)]+)\&amp;hash=[\w]+'
         url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
         html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
@@ -149,7 +162,7 @@ def process_domain(language: List[str], html_path: Path, menu_tag: str, images_o
         missing = []
         images = [image for image in content_soup.select(".wsumarcs-entry img.wsumarcs-comPic")]
         for image in images:
-            # Force src to lowercase, this also happens in the flatten media script
+            # Force src to lowercase, this also must happen in the flatten media script
             image["src"] = image["src"].replace(" ", "_").lower()
             img_name = image["src"].replace("../_img/", "")
             # Compile list of images and entry info
@@ -163,6 +176,23 @@ def process_domain(language: List[str], html_path: Path, menu_tag: str, images_o
                 missing.append([entry_id, img_name, domain_dir])
         missing = sorted(missing, key=lambda x: x[0].lower())
         write_missing_report(type = "images", language = language[0], missing = missing)
+
+        # Use BeautifulSoup to check for missing audio, and generate a report
+        entries = []
+        missing = []
+        audios = [audio for audio in content_soup.select(".wsumarcs-entry img.wsumarcs-entrySfx")]
+        for audio in audios:
+            audio["data-file"] = audio["data-file"].replace(" ", "_").lower()
+            audio_name = audio["data-file"].replace("../_audio/", "")
+            entry = audio.find_parent("div")
+            entry_id = entry["id"]
+            entries.append([entry_id, audio_name, domain_dir])
+            if audio_name not in audio_on_disk:
+                print(f". . . missing audio {audio_name}")
+                audio.decompose()
+                missing.append([entry_id, audio_name, domain_dir])
+        missing = sorted(missing, key=lambda x: x[0].lower())
+        write_missing_report(type = "audio", language = language[0], missing = missing)
 
         # Get the page template
         template_soup = get_template(template_path = "../template/content.html")
@@ -226,22 +256,31 @@ def build_index_file(language: List[str], domains: List[str]):
         index_file.write(template_soup.prettify())
 
 
-def iterate_htmls(language: List[str], domains: List[str], images_on_disk: List[str]):
+def iterate_htmls(language: List[str],
+                  domains: List[str],
+                  images_on_disk: List[str],
+                  audio_on_disk: List[str]
+                  ):
     # Build the menu for the content pages - they will have different path ../ vs ./ for index page
     menu_tag = build_menu(domains=domains, is_index=False)
     # Build each domain page
     html_paths = Path("../tmp").glob("**/*.html")
     for html_path in html_paths:
-        process_domain(language, html_path, menu_tag, images_on_disk)
+        process_domain(language=language,
+                       html_path=html_path,
+                       menu_tag=menu_tag,
+                       images_on_disk=images_on_disk,
+                       audio_on_disk=audio_on_disk)
 
 
 def main():
-    # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
-    # Second element is human-readable version
+    """
+    Before running this script, do the flatten_media_dir one
+    """
 
-    DEBUG = True
+    debug = True
 
-    if DEBUG:
+    if debug:
         languages = [["test", "Test"]]
     else:
         languages = [
@@ -250,7 +289,7 @@ def main():
             ["mudburra", "Mudburra"],
             ["ngarinyman", "Ngarinyman"]
         ]
-    # all_images is the directory of images resulting from running the flatten media script
+    # Images from the media folder have been flattened, combining all images into one dir
     images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/"))
 
     if Path("../reports").is_dir():
@@ -260,6 +299,9 @@ def main():
 
     for language in languages:
         print(f"**** Doing {language[1]} ****")
+
+        # Audio has been flattened from the media dir into separate audio folders per language
+        audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"../all_audio/{language[0]}/_audio"))
 
         # Reset tmp and reports dirs
         if Path("../tmp").is_dir():
@@ -272,9 +314,9 @@ def main():
         # Copy the feature image from the content folder
         shutil.copy(f"../content/{language[0]}/feature.jpg", output_dir.joinpath("_assets"))
 
-        # Create media dirs but they will need to be manually filled
-        output_dir.joinpath("_img").mkdir(parents=True, exist_ok=True)
-        output_dir.joinpath("_audio").mkdir(parents=True, exist_ok=True)
+        # Create media dirs and fill with content that has been flattened
+        shutil.copytree("../all_images/_img_sm", output_dir.joinpath("_img"), dirs_exist_ok=True)
+        shutil.copytree(f"../all_audio/{language[0]}/_audio", output_dir.joinpath("_audio"), dirs_exist_ok=True)
 
         # Prepare the domain zips
         zip_path = Path(f"../content/{language[0]}/zips")
@@ -285,7 +327,7 @@ def main():
         print("==== Build index file ====")
         build_index_file(language=language, domains=domains)
         print("==== Iterate htmls ====")
-        iterate_htmls(language=language, domains=domains, images_on_disk=images_on_disk)
+        iterate_htmls(language=language, domains=domains, images_on_disk=images_on_disk, audio_on_disk=audio_on_disk)
         print("done\n\n")
 
 

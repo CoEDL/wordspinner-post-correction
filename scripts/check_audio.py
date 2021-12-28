@@ -2,6 +2,9 @@
 Make a list of all the dictionary audio we have.
 For each domain (html), get all audio.
 Compile a report of all the ones that are not in the master list.
+
+If this script is run after process.py it should result in an empty list,
+because process should remove missing audio tags
 """
 
 import csv
@@ -35,36 +38,36 @@ def main(language: str, audio_on_disk: List[str]):
             soup = BeautifulSoup(html_file, "html5lib")
             audios = [audio for audio in soup.select(".wsumarcs-entry img.wsumarcs-entrySfx")]
         for audio in audios:
-            audio_src = audio["data-file"].replace("../_audio/", "")
+            audio["data-file"] = audio["data-file"].replace(" ", "_").lower()
+            audio_name = audio["data-file"].replace("../_audio/", "")
             entry = audio.find_parent("div")
             entry_id = entry["id"]
-            entries.append([entry_id, audio_src, domain])
-
-    print(entries)
+            entries.append([entry_id, audio_name, domain])
 
     # Check each entry to see if we have an audio for it
-    # for entry_id, audio_src, domain in entries:
-    #     if audio_src not in audio_on_disk:
-    #         missing.append([entry_id, audio_src, domain])
-    #
-    # missing = sorted(missing, key=lambda x: x[0].lower())
-    #
-    # with Path(f"../reports/audio/report-{language}.csv").open("w", newline='') as csvfile:
-    #     headers = ["Language", "Entry", "audio", "Domain"]
-    #     writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
-    #     writer.writeheader()
-    #     for entry_id, audio_src, domain in missing:
-    #         writer.writerow({"Language": language,
-    #                          "Entry": entry_id,
-    #                          "audio": audio_src,
-    #                          "Domain": domain})
+    for entry_id, audio_name, domain in entries:
+        print(audio_name)
+        if audio_name not in audio_on_disk:
+            missing.append([entry_id, audio_name, domain])
+
+    missing = sorted(missing, key=lambda x: x[0].lower())
+    print(missing)
+    with Path(f"../reports/audio/report-{language}.csv").open("w", newline='') as csvfile:
+        headers = ["Language", "Entry", "Audio", "Domain"]
+        writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
+        writer.writeheader()
+        for entry, audio, domain in missing:
+            writer.writerow({"Language": language,
+                             "Entry": entry,
+                             "Audio": audio,
+                             "Domain": domain})
 
 
 if __name__ == "__main__":
 
-    DEBUG = True
+    debug = True
 
-    if DEBUG:
+    if debug:
         languages = [["test", "Test"]]
     else:
         languages = [
@@ -78,8 +81,8 @@ if __name__ == "__main__":
         shutil.rmtree("../reports")
     Path("../reports/audio").mkdir(parents=True, exist_ok=True)
 
-    audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"../all_audio"))
-
     for language in languages:
+        audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"../all_audio/{language[0]}/_audio"))
+        print(audio_on_disk)
         print(f"\n\n* * * * *\n\n{language[0]}")
         main(language=language[0], audio_on_disk=audio_on_disk)

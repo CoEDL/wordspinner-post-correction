@@ -2,6 +2,9 @@
 Make a list of all the dictionary images we have.
 For each domain (html), get all images.
 Compile a report of all the ones that are not in the master list.
+
+If this script is run after process.py it should result in an empty list,
+because process should remove missing image tags
 """
 
 import csv
@@ -51,18 +54,18 @@ def main(language: str, images_on_disk: List[str]):
         headers = ["Language", "Entry", "Image", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
         writer.writeheader()
-        for entry_id, image_src, domain in missing:
+        for entry, image, domain in missing:
             writer.writerow({"Language": language,
-                             "Entry": entry_id,
-                             "Image": image_src,
+                             "Entry": entry,
+                             "Image": image,
                              "Domain": domain})
 
 
 if __name__ == "__main__":
 
-    DEBUG = True
+    debug = True
 
-    if DEBUG:
+    if debug:
         languages = [["test", "Test"]]
     else:
         languages = [
