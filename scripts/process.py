@@ -7,8 +7,6 @@ TODO
 
 """
 import html5lib
-import glob
-import os
 import csv
 import re
 import shutil
@@ -24,7 +22,7 @@ def compile_images_on_disk_list(image_dir: Path = ""):
     images_on_disk_paths = image_dir.glob("**/*.jpg")
     for images_on_disk_path in images_on_disk_paths:
         images_on_disk.append(images_on_disk_path.name.lower())
-    return(images_on_disk)
+    return images_on_disk
 
 
 def compile_audio_on_disk_list(audio_dir: Path = ""):
@@ -33,7 +31,7 @@ def compile_audio_on_disk_list(audio_dir: Path = ""):
     audio_on_disk_paths = audio_dir.glob("**/*.mp3")
     for audio_on_disk_path in audio_on_disk_paths:
         audio_on_disk.append(audio_on_disk_path.name.lower())
-    return(audio_on_disk)
+    return audio_on_disk
 
 
 def unzip_archives(zip_path: Path = None):
@@ -89,9 +87,9 @@ def make_domain_readable(domain: str) -> str:
     return re.sub(pattern, replacemenet, domain)
 
 
-def write_missing_report(type: str = "", language: str = "", missing: List[List[str]] = None):
+def write_missing_report(report_type: str = "", language: str = "", missing: List[List[str]] = None):
     print("*** write_missing_report")
-    csv_path = Path(f"../reports/{language}-{type}-report.csv")
+    csv_path = Path(f"../reports/{language}-{report_type}-report.csv")
     with csv_path.open("a", newline='') as csvfile:
         headers = ["Language", "Entry", "Src", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
@@ -123,6 +121,10 @@ def process_domain(language: List[str],
         # Remove weird big dot
         dot_pattern = '<span style="font-size:0.5em;position:relative;bottom:3px;">⚫</span>'
         html = re.sub(dot_pattern, '<br />', str(content_soup))
+
+        # Remove <!--a--> and bad <!--a2-> tags
+        html = html.replace("<!--a-->", "")
+        html = html.replace("<!--a2->", "")
 
         # Fix audio dir in player icons
         audio_player_pattern = "img/audio.png"
@@ -175,7 +177,7 @@ def process_domain(language: List[str],
                 image.decompose()
                 missing.append([entry_id, img_name, domain_dir])
         missing = sorted(missing, key=lambda x: x[0].lower())
-        write_missing_report(type = "images", language = language[0], missing = missing)
+        write_missing_report(report_type="images", language=language[0], missing=missing)
 
         # Use BeautifulSoup to check for missing audio, and generate a report
         entries = []
@@ -192,10 +194,10 @@ def process_domain(language: List[str],
                 audio.decompose()
                 missing.append([entry_id, audio_name, domain_dir])
         missing = sorted(missing, key=lambda x: x[0].lower())
-        write_missing_report(type = "audio", language = language[0], missing = missing)
+        write_missing_report(report_type="audio", language=language[0], missing=missing)
 
         # Get the page template
-        template_soup = get_template(template_path = "../template/content.html")
+        template_soup = get_template(template_path="../template/content.html")
 
         # Change the page title
         article_tag = template_soup.find("title")
@@ -232,7 +234,7 @@ def build_index_file(language: List[str], domains: List[str]):
     menu_tag = build_menu(domains=domains, is_index=True)
 
     # Build the page
-    template_soup = get_template(template_path = "../template/index.html")
+    template_soup = get_template(template_path="../template/index.html")
 
     # Add page title
     title_tag = template_soup.find("title")
@@ -278,7 +280,7 @@ def main():
     Before running this script, do the flatten_media_dir one
     """
 
-    debug = True
+    debug = False
 
     if debug:
         languages = [["test", "Test"]]
