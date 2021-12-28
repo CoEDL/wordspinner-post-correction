@@ -1,5 +1,4 @@
 .idea
-content/*
 media/*
 output/*
 reports/*
@@ -10,7 +9,12 @@ all_audio/*
 
 # Keep the folders themselves
 
-!content/.keep
 !media/.keep
 !output/index/*
 !tmp/.keep
+
+#content/*
+!content/.keep
+**/audio
+**/images
+**/zips
