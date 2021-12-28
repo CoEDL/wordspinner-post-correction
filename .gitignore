@@ -2,7 +2,11 @@
 content/*
 media/*
 output/*
+reports/*
 tmp/*
+
+all_images_source/*
+all_images_target/*
 
 # Keep the folders themselves
 
