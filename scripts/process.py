@@ -50,9 +50,8 @@ def unzip_archives(zip_path: Path = None):
 
 def build_menu(domains: List, is_index: bool = False):
     subdir = "./" if is_index else "../"
-    menu_soup = BeautifulSoup("<ul id='menu'></ul>", "html5lib")
+    menu_soup = BeautifulSoup('<ul id="menu"></ul>', "html.parser")
     menu_tag = menu_soup.ul
-
     home_group_tag = menu_soup.new_tag('li')
     home_tag = menu_soup.new_tag("a", href=subdir)
     home_tag.string = "Home"
@@ -105,7 +104,7 @@ def write_missing_report(report_type: str = "", language: str = "", missing: Lis
 
 def process_domain(language: List[str],
                    html_path: Path,
-                   menu_tag: str,
+                   menu_soup: BeautifulSoup,
                    images_on_disk: List[str],
                    audio_on_disk: List[str]
                    ):
@@ -205,7 +204,7 @@ def process_domain(language: List[str],
 
         # Insert the menu
         nav_tag = template_soup.find("nav")
-        nav_tag.append(menu_tag)
+        nav_tag.append(menu_soup)
 
         # Change the page header
         header_tag = template_soup.find("header")
@@ -264,13 +263,13 @@ def iterate_htmls(language: List[str],
                   audio_on_disk: List[str]
                   ):
     # Build the menu for the content pages - they will have different path ../ vs ./ for index page
-    menu_tag = build_menu(domains=domains, is_index=False)
+    menu_soup = build_menu(domains=domains, is_index=False)
     # Build each domain page
     html_paths = Path("../tmp").glob("**/*.html")
     for html_path in html_paths:
         process_domain(language=language,
                        html_path=html_path,
-                       menu_tag=menu_tag,
+                       menu_soup=menu_soup,
                        images_on_disk=images_on_disk,
                        audio_on_disk=audio_on_disk)
 

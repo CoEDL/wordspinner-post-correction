@@ -141,3 +141,55 @@
 .wsumarcs-entryLx {
     margin: 0 !important;
 }
+
+.main-nav {
+    border-radius: 1em;
+    background-color: #f7f7f7;
+    color: #aeaeae;
+}
+
+#menu {
+    margin: 0;
+}
+#menu li {
+    padding: 0.2em 1em;
+    margin: 0;
+}
+
+
+
+/* Menu */
+@media (min-width: 40.0rem) {
+    .main-nav {
+        background-color: transparent;
+    }
+    #menu-checkbox,
+    .main-nav label {
+        display: none;
+    }
+}
+
+@media (max-width: 40.0rem) {
+    .main-nav {
+        margin: 0 1em;
+    }
+    .main-nav label {
+        display: block;
+        cursor: pointer;
+        padding: 0 1em;
+        margin: 0;
+    }
+    .main-nav label:before {
+        content: "☰ ";
+    }
+    input#menu-checkbox {
+        display: none;
+    }
+    #menu {
+        max-height: 0;
+        overflow: hidden;
+    }
+    input#menu-checkbox:checked ~ #menu {
+        max-height: 100%;
+    }
+}
