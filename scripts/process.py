@@ -1,9 +1,15 @@
 """
 Script to clean the HTML files
+
+TODO
+- make a list of just the xjpg image sources
+- check for missing audio
+
 """
 import html5lib
 import glob
 import os
+import csv
 import re
 import shutil
 import zipfile
@@ -74,7 +80,23 @@ def make_domain_readable(domain: str) -> str:
     return re.sub(pattern, replacemenet, domain)
 
 
-def process_domain(language: List[str], html_path: str, menu_tag: str, images_on_disk: List[str]):
+def write_missing_report(type: str = "", language: str = "", missing: List[List[str]] = None):
+    print("*** write_missing_report")
+    csv_path = Path(f"../reports/{type}/report-{language}.csv")
+    with csv_path.open("a", newline='') as csvfile:
+        headers = ["Language", "Entry", "Src", "Domain"]
+        writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
+        if csvfile.tell() == 0:
+            print("*** write headers")
+            writer.writeheader()
+        for entry, src, domain in missing:
+            writer.writerow({"Language": language,
+                             "Entry": entry,
+                             "Src": src,
+                             "Domain": domain})
+
+
+def process_domain(language: List[str], html_path: Path, menu_tag: str, images_on_disk: List[str]):
     domain_dir = html_path.parts[-2]
     print(domain_dir)
     with open(html_path) as html_file:
@@ -121,17 +143,26 @@ def process_domain(language: List[str], html_path: str, menu_tag: str, images_on
 
         # Make a soup tag for the fixed content
         content_soup = BeautifulSoup(html, "html.parser")
-        # images = [image for image in soup.select(".wsumarcs-entry img.wsumarcs-comPic")]
 
-        # Use BeautifulSoup to check for missing images
+        # Use BeautifulSoup to check for missing images, and generate a report
+        entries = []
+        missing = []
         images = [image for image in content_soup.select(".wsumarcs-entry img.wsumarcs-comPic")]
         for image in images:
-            img_name = image['src'].replace('../_img/', '').lower()
-            if img_name in images_on_disk:
-                print(f". . . . IMAGE {image['src'].replace('../_img/', '')}")
-            else:
-                print(f"MISSING IMAGE {image['src'].replace('../_img/', '')}")
+            # Force src to lowercase, this also happens in the flatten media script
+            image["src"] = image["src"].replace(" ", "_").lower()
+            img_name = image["src"].replace("../_img/", "")
+            # Compile list of images and entry info
+            entry = image.find_parent("div")
+            entry_id = entry["id"]
+            entries.append([entry_id, img_name, domain_dir])
+
+            if img_name not in images_on_disk:
+                print(f". . . missing image {img_name}")
                 image.decompose()
+                missing.append([entry_id, img_name, domain_dir])
+        missing = sorted(missing, key=lambda x: x[0].lower())
+        write_missing_report(type = "images", language = language[0], missing = missing)
 
         # Get the page template
         template_soup = get_template(template_path = "../template/content.html")
@@ -208,23 +239,29 @@ if __name__ == "__main__":
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
 
-    # languages = [
-    #     ["bilinarra", "Bilinarra"],
-    #     ["gurindji", "Gurindji"],
-    #     ["mudburra", "Mudburra"],
-    #     ["ngarinyman", "Ngarinyman"]
-    # ]
+    DEBUG = False
 
-    languages = [["test", "Test"]]
+    if DEBUG:
+        languages = [["test", "Test"]]
+    else:
+        languages = [
+            ["bilinarra", "Bilinarra"],
+            ["gurindji", "Gurindji"],
+            ["mudburra", "Mudburra"],
+            ["ngarinyman", "Ngarinyman"]
+        ]
+    # all_images is the directory of images resulting from running the flatten media script
+    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/"))
 
-    # images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images_target"))
-    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../output/test/_img"))
-    print(images_on_disk)
+    if Path("../reports").is_dir():
+        shutil.rmtree("../reports")
+    Path("../reports/images").mkdir(parents=True, exist_ok=True)
+    Path("../reports/audio").mkdir(parents=True, exist_ok=True)
 
     for language in languages:
         print(f"**** Doing {language[1]} ****")
 
-        # Reset tmp
+        # Reset tmp and reports dirs
         if Path("../tmp").is_dir():
             shutil.rmtree("../tmp")
 

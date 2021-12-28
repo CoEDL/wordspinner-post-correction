@@ -5,8 +5,8 @@ output/*
 reports/*
 tmp/*
 
-all_images_source/*
-all_images_target/*
+all_images/*
+all_audio/*
 
 # Keep the folders themselves
 

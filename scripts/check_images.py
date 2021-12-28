@@ -1,5 +1,5 @@
 """
-Make a list of all the dictinoary images we have.
+Make a list of all the dictionary images we have.
 For each domain (html), get all images.
 Compile a report of all the ones that are not in the master list.
 """
@@ -8,6 +8,7 @@ import csv
 from pathlib import Path
 import shutil
 from typing import List
+
 
 def compile_images_on_disk_list(image_dir: Path = ""):
     # Make a list of all the image files we have
@@ -59,19 +60,23 @@ def main(language: str, images_on_disk: List[str]):
 
 if __name__ == "__main__":
 
+    DEBUG = True
+
+    if DEBUG:
+        languages = [["test", "Test"]]
+    else:
+        languages = [
+            ["bilinarra", "Bilinarra"],
+            ["gurindji", "Gurindji"],
+            ["mudburra", "Mudburra"],
+            ["ngarinyman", "Ngarinyman"]
+        ]
+
     if Path("../reports").is_dir():
         shutil.rmtree("../reports")
     Path("../reports/images").mkdir(parents=True, exist_ok=True)
 
-    languages = [
-        # ["bilinarra", "Bilinarra"],
-        # ["gurindji", "Gurindji"],
-        # ["mudburra", "Mudburra"],
-        # ["ngarinyman", "Ngarinyman"]
-        ["test", "Test"]
-    ]
-
-    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images_target"))
+    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/_img"))
 
     for language in languages:
         print(f"\n\n* * * * *\n\n{language[0]}")
