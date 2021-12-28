@@ -75,9 +75,10 @@ if __name__ == "__main__":
             ["ngarinyman", "Ngarinyman"]
         ]
 
-    if Path("../reports").is_dir():
+    reports_path = Path("../reports")
+    if reports_path.is_dir():
         shutil.rmtree("../reports")
-    Path("../reports/images").mkdir(parents=True, exist_ok=True)
+    reports_path.joinpath("images").mkdir(parents=True, exist_ok=True)
 
     images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/_img"))
 

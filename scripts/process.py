@@ -293,10 +293,11 @@ def main():
     # Images from the media folder have been flattened, combining all images into one dir
     images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/"))
 
-    if Path("../reports").is_dir():
-        shutil.rmtree("../reports")
-    Path("../reports/images").mkdir(parents=True, exist_ok=True)
-    Path("../reports/audio").mkdir(parents=True, exist_ok=True)
+    reports_path = Path("../reports")
+    if reports_path.is_dir():
+        shutil.rmtree(reports_path)
+    reports_path.joinpath("images").mkdir(parents=True, exist_ok=True)
+    reports_path.joinpath("audio").mkdir(parents=True, exist_ok=True)
 
     for language in languages:
         print(f"**** Doing {language[1]} ****")
@@ -305,12 +306,14 @@ def main():
         audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"../all_audio/{language[0]}/_audio"))
 
         # Reset tmp and reports dirs
-        if Path("../tmp").is_dir():
-            shutil.rmtree("../tmp")
+        tmp_path = Path("../tmp")
+        if tmp_path.is_dir():
+            shutil.rmtree(tmp_path)
 
         # Reset lang dir
-        if Path(f"../output/{language[0]}").is_dir():
-            shutil.rmtree(f"../output/{language[0]}")
+        language_path = Path(f"../output/{language[0]}")
+        if language_path.is_dir():
+            shutil.rmtree(language_path)
 
         # Create output dir and copy assets from the template
         output_dir = Path(f"../output/{language[0]}")
