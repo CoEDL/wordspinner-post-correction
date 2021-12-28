@@ -148,7 +148,7 @@ def process_domain(language: List[str],
 
         # Add a named anchor for english to language page linking
         anchor_pattern = r'<div class=\"wsumarcs-entry\" id=\"wsumarcs-([a-z]+)\">'
-        anchor_replacement = r'<a id="\1"></a><div class="wsumarcs-entry" id="\1">'
+        anchor_replacement = r'<div class="wsumarcs-entry" id="\1">'
         html = re.sub(anchor_pattern, anchor_replacement, html, flags=re.IGNORECASE)
 
         # Change english file link URLs
@@ -280,7 +280,7 @@ def main():
     Before running this script, do the flatten_media_dir one
     """
 
-    debug = False
+    debug = True
 
     if debug:
         languages = [["test", "Test"]]
@@ -308,6 +308,10 @@ def main():
         # Reset tmp and reports dirs
         if Path("../tmp").is_dir():
             shutil.rmtree("../tmp")
+
+        # Reset lang dir
+        if Path(f"../output/{language[0]}").is_dir():
+            shutil.rmtree(f"../output/{language[0]}")
 
         # Create output dir and copy assets from the template
         output_dir = Path(f"../output/{language[0]}")
