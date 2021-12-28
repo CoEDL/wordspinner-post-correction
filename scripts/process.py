@@ -235,11 +235,11 @@ def iterate_htmls(language: List[str], domains: List[str], images_on_disk: List[
         process_domain(language, html_path, menu_tag, images_on_disk)
 
 
-if __name__ == "__main__":
+def main():
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
 
-    DEBUG = False
+    DEBUG = True
 
     if DEBUG:
         languages = [["test", "Test"]]
@@ -287,3 +287,7 @@ if __name__ == "__main__":
         print("==== Iterate htmls ====")
         iterate_htmls(language=language, domains=domains, images_on_disk=images_on_disk)
         print("done\n\n")
+
+
+if __name__ == "__main__":
+    main()
