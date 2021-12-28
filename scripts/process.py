@@ -12,6 +12,15 @@ from typing import List
 from bs4 import BeautifulSoup
 
 
+def compile_images_on_disk_list(image_dir: Path = ""):
+    # Make a list of all the image files we have
+    images_on_disk = []
+    images_on_disk_paths = image_dir.glob("**/*.jpg")
+    for images_on_disk_path in images_on_disk_paths:
+        images_on_disk.append(images_on_disk_path.name.lower())
+    return(images_on_disk)
+
+
 def unzip_archives(zip_path: Path = None):
     domains = []
     zip_paths = zip_path.glob("**/*.zip")
@@ -65,7 +74,7 @@ def make_domain_readable(domain: str) -> str:
     return re.sub(pattern, replacemenet, domain)
 
 
-def process_domain(language: List[str], html_path: str, menu_tag: str):
+def process_domain(language: List[str], html_path: str, menu_tag: str, images_on_disk: List[str]):
     domain_dir = html_path.parts[-2]
     print(domain_dir)
     with open(html_path) as html_file:
@@ -94,6 +103,11 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
         image_replacement = r'src="../_img/'
         html = re.sub(image_pattern, image_replacement, html)
 
+        # Try correcting some simple image name problems
+        image_pattern = ".xjpg"
+        image_replacement = ".jpg"
+        html = re.sub(image_pattern, image_replacement, html)
+
         # Add a named anchor for english to language page linking
         anchor_pattern = r'<div class=\"wsumarcs-entry\" id=\"wsumarcs-([a-z]+)\">'
         anchor_replacement = r'<a id="\1"></a><div class="wsumarcs-entry" id="\1">'
@@ -106,7 +120,18 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
         html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
 
         # Make a soup tag for the fixed content
-        content_tag = BeautifulSoup(html, "html.parser")
+        content_soup = BeautifulSoup(html, "html.parser")
+        # images = [image for image in soup.select(".wsumarcs-entry img.wsumarcs-comPic")]
+
+        # Use BeautifulSoup to check for missing images
+        images = [image for image in content_soup.select(".wsumarcs-entry img.wsumarcs-comPic")]
+        for image in images:
+            img_name = image['src'].replace('../_img/', '').lower()
+            if img_name in images_on_disk:
+                print(f". . . . IMAGE {image['src'].replace('../_img/', '')}")
+            else:
+                print(f"MISSING IMAGE {image['src'].replace('../_img/', '')}")
+                image.decompose()
 
         # Get the page template
         template_soup = get_template(template_path = "../template/content.html")
@@ -126,7 +151,7 @@ def process_domain(language: List[str], html_path: str, menu_tag: str):
         # Insert the content
         article_tag = template_soup.find("article")
         article_tag.string = ""
-        article_tag.append(content_tag)
+        article_tag.append(content_soup)
 
         # Save the html
         output_path = Path(f"../output/{language[0]}/{domain_dir}")
@@ -140,7 +165,7 @@ def build_index_file(language: List[str], domains: List[str]):
 
     # Slurp in the home page content
     with Path(f"../content/{language[0]}/home.html").open("r") as content_file:
-        content_tag = BeautifulSoup(content_file, "html.parser")
+        content_soup = BeautifulSoup(content_file, "html.parser")
 
     # Build the menu for the index page - it will have different path ./ vs ../ for content pages
     menu_tag = build_menu(domains=domains, is_index=True)
@@ -163,32 +188,38 @@ def build_index_file(language: List[str], domains: List[str]):
     # Insert the content
     article_tag = template_soup.find("article")
     article_tag.string = ""
-    article_tag.append(content_tag)
+    article_tag.append(content_soup)
 
     # Write the index file
     with Path(f"../output/{language[0]}/index.html").open("w") as index_file:
         index_file.write(template_soup.prettify())
 
 
-def iterate_htmls(language: List[str], domains: List[str]):
+def iterate_htmls(language: List[str], domains: List[str], images_on_disk: List[str]):
     # Build the menu for the content pages - they will have different path ../ vs ./ for index page
     menu_tag = build_menu(domains=domains, is_index=False)
     # Build each domain page
     html_paths = Path("../tmp").glob("**/*.html")
     for html_path in html_paths:
-        process_domain(language, html_path, menu_tag)
+        process_domain(language, html_path, menu_tag, images_on_disk)
 
 
 if __name__ == "__main__":
     # Language first element should match zip and output dirs eg gurindji-zip gurindji-output
     # Second element is human-readable version
-    # languages = [["test", "Test"]]
 
-    languages = [
-        ["bilinarra", "Bilinarra"],
-        ["gurindji", "Gurindji"],
-        ["mudburra", "Mudburra"],
-        ["ngarinyman", "Ngarinyman"]]
+    # languages = [
+    #     ["bilinarra", "Bilinarra"],
+    #     ["gurindji", "Gurindji"],
+    #     ["mudburra", "Mudburra"],
+    #     ["ngarinyman", "Ngarinyman"]
+    # ]
+
+    languages = [["test", "Test"]]
+
+    # images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images_target"))
+    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../output/test/_img"))
+    print(images_on_disk)
 
     for language in languages:
         print(f"**** Doing {language[1]} ****")
@@ -217,5 +248,5 @@ if __name__ == "__main__":
         print("==== Build index file ====")
         build_index_file(language=language, domains=domains)
         print("==== Iterate htmls ====")
-        iterate_htmls(language=language, domains=domains)
+        iterate_htmls(language=language, domains=domains, images_on_disk=images_on_disk)
         print("done\n\n")

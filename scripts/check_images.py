@@ -7,19 +7,23 @@ Compile a report of all the ones that are not in the master list.
 import csv
 from pathlib import Path
 import shutil
+from typing import List
 
-def main(language: str):
+def compile_images_on_disk_list(image_dir: Path = ""):
+    # Make a list of all the image files we have
+    images_on_disk = []
+    images_on_disk_paths = image_dir.glob("**/*.jpg")
+    for images_on_disk_path in images_on_disk_paths:
+        images_on_disk.append(images_on_disk_path.name)
+    return(images_on_disk)
+
+
+def main(language: str, images_on_disk: List[str]):
     from bs4 import BeautifulSoup
     from pathlib import Path
 
     entries = []
     missing = []
-
-    # Make a list of all the image files we have
-    images_on_disk = []
-    images_on_disk_paths = Path(f"../all_images_target").glob("**/*.jpg")
-    for images_on_disk_path in images_on_disk_paths:
-        images_on_disk.append(images_on_disk_path.name)
 
     # Make a list of every entry and its image
     html_paths = Path(f"../output/{language}").glob("**/index.html")
@@ -60,13 +64,15 @@ if __name__ == "__main__":
     Path("../reports/images").mkdir(parents=True, exist_ok=True)
 
     languages = [
-        ["bilinarra", "Bilinarra"],
-        ["gurindji", "Gurindji"],
-        ["mudburra", "Mudburra"],
-        ["ngarinyman", "Ngarinyman"]
-        # ["test", "Test"]
+        # ["bilinarra", "Bilinarra"],
+        # ["gurindji", "Gurindji"],
+        # ["mudburra", "Mudburra"],
+        # ["ngarinyman", "Ngarinyman"]
+        ["test", "Test"]
     ]
+
+    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images_target"))
 
     for language in languages:
         print(f"\n\n* * * * *\n\n{language[0]}")
-        main(language=language[0])
+        main(language=language[0], images_on_disk=images_on_disk)
