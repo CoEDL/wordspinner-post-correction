@@ -42,13 +42,7 @@ def main(language: str):
 
     missing = sorted(missing, key=lambda x: x[0].lower())
 
-    with Path(f"../reports/report-{language}.csv").open("w", newline='') as csvfile:
-        # csv_writer = csv.writer(csvfile,
-        #                         delimiter=",",
-        #                         quotechar="|",
-        #                         quoting=csv.QUOTE_MINIMAL)
-        # for entry_id, image_src, domain in missing:
-        #     csv_writer.writerow([entry_id, image_src, domain])
+    with Path(f"../reports/images/report-{language}.csv").open("w", newline='') as csvfile:
         headers = ["Language", "Entry", "Image", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
         writer.writeheader()  # file doesn't exist yet, write a header
@@ -64,7 +58,7 @@ if __name__ == "__main__":
 
     if Path("../reports").is_dir():
         shutil.rmtree("../reports")
-    Path("../reports").mkdir(parents=True, exist_ok=True)
+    Path("../reports/images").mkdir(parents=True, exist_ok=True)
 
     languages = [
         ["bilinarra", "Bilinarra"],
