@@ -1,19 +1,15 @@
 """
-Script to clean the HTML files
-
-TODO
-- make a list of just the xjpg image sources
-- check for missing audio
-
+Script to rebuild the HTML files
 """
-import html5lib
+from pathlib import Path
+from typing import List
 import csv
+import html5lib
 import re
 import shutil
 import zipfile
-from pathlib import Path
-from typing import List
 from bs4 import BeautifulSoup
+from jinja2 import Template
 
 
 def compile_images_on_disk_list(image_dir: Path = ""):
@@ -87,13 +83,11 @@ def make_domain_readable(domain: str) -> str:
 
 
 def write_missing_report(report_type: str = "", language: str = "", missing: List[List[str]] = None):
-    print("*** write_missing_report")
     csv_path = Path(f"../reports/{language}-{report_type}-report.csv")
     with csv_path.open("a", newline='') as csvfile:
         headers = ["Language", "Entry", "Src", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
         if csvfile.tell() == 0:
-            print("*** write headers")
             writer.writeheader()
         for entry, src, domain in missing:
             writer.writerow({"Language": language,
@@ -195,8 +189,8 @@ def process_domain(language: List[str],
         missing = sorted(missing, key=lambda x: x[0].lower())
         write_missing_report(report_type="audio", language=language[0], missing=missing)
 
-        # Get the page template
-        template_soup = get_template(template_path="../template/content.html")
+        # Get the page templates
+        template_soup = get_template(template_path="../templates/content.html")
 
         # Change the page title
         article_tag = template_soup.find("title")
@@ -233,7 +227,7 @@ def build_index_file(language: List[str], domains: List[str]):
     menu_tag = build_menu(domains=domains, is_index=True)
 
     # Build the page
-    template_soup = get_template(template_path="../template/index.html")
+    template_soup = get_template(template_path="../templates/index.html")
 
     # Add page title
     title_tag = template_soup.find("title")
@@ -280,7 +274,7 @@ def main():
     And add wordspinner zips to content/language/zips/ dir
     """
 
-    debug = False
+    debug = True
 
     if debug:
         languages = [["test", "Test"]]
@@ -291,17 +285,34 @@ def main():
             ["mudburra", "Mudburra"],
             ["ngarinyman", "Ngarinyman"]
         ]
+
     # Images from the media folder have been flattened, combining all images into one dir
     images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/"))
 
+    # Reset reports dir
     reports_path = Path("../reports")
     if reports_path.is_dir():
         shutil.rmtree(reports_path)
     reports_path.joinpath("images").mkdir(parents=True, exist_ok=True)
     reports_path.joinpath("audio").mkdir(parents=True, exist_ok=True)
 
+    # Reset output dir
+    output_path = Path(f"../output")
+    if output_path.is_dir():
+        shutil.rmtree(output_path)
+
+    # Build landing page
+    landing_page_path = Path(f"../output/dictionaries/")
+    landing_page_path.mkdir(parents=True, exist_ok=True)
+    with open("../templates/landing_page/index.html") as template_file:
+        tm = Template(template_file.read())
+        html = tm.render(languages=languages)
+        with landing_page_path.joinpath("index.html").open("w") as html_output_file:
+            html_output_file.write(html)
+    shutil.copytree("../templates/landing_page/_assets", landing_page_path.joinpath("_assets"), dirs_exist_ok=True)
+
     for language in languages:
-        print(f"**** Doing {language[1]} ****")
+        print(f"==== Doing {language[1]} ====")
 
         # Audio has been flattened from the media dir into separate audio folders per language
         audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"../all_audio/{language[0]}/_audio"))
@@ -311,25 +322,19 @@ def main():
         if tmp_path.is_dir():
             shutil.rmtree(tmp_path)
 
-        # Reset lang dir
-        language_path = Path(f"../output/{language[0]}")
-        if language_path.is_dir():
-            shutil.rmtree(language_path)
-
-        # Create output dir and copy assets from the template
-        output_dir = Path(f"../output/{language[0]}")
-        shutil.copytree("../template/_assets", output_dir.joinpath("_assets"), dirs_exist_ok=True)
+        # Copy assets
+        output_language_dir = Path(f"../output/{language[0]}")
+        shutil.copytree("../templates/_assets", output_language_dir.joinpath("_assets"), dirs_exist_ok=True)
 
         # Copy the feature image from the content folder
-        shutil.copy(f"../content/{language[0]}/feature.jpg", output_dir.joinpath("_assets"))
+        shutil.copy(f"../content/{language[0]}/feature.jpg", output_language_dir.joinpath("_assets"))
 
         # Create media dirs and fill with content that has been flattened
-        shutil.copytree("../all_images/_img_sm", output_dir.joinpath("_img"), dirs_exist_ok=True)
-        shutil.copytree(f"../all_audio/{language[0]}/_audio", output_dir.joinpath("_audio"), dirs_exist_ok=True)
+        shutil.copytree("../all_images/_img_sm", output_language_dir.joinpath("_img"), dirs_exist_ok=True)
+        shutil.copytree(f"../all_audio/{language[0]}/_audio", output_language_dir.joinpath("_audio"), dirs_exist_ok=True)
 
         # Prepare the domain zips
         zip_path = Path(f"../content/{language[0]}/zips")
-        print(f"zip_path {zip_path}")
         domains = unzip_archives(zip_path=zip_path)
 
         # Now build the html pages

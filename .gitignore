@@ -7,14 +7,6 @@ tmp/*
 all_images/*
 all_audio/*
 
-# Keep the folders themselves
-
-!media/.keep
-!output/index/*
-!tmp/.keep
-
-#content/*
-!content/.keep
 **/audio
 **/images
 **/zips
