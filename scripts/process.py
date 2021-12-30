@@ -276,10 +276,11 @@ def iterate_htmls(language: List[str],
 
 def main():
     """
-    Before running this script, do the flatten_media_dir one
+    Before running this script, do the flatten_media_dir script
+    And add wordspinner zips to content/language/zips/ dir
     """
 
-    debug = True
+    debug = False
 
     if debug:
         languages = [["test", "Test"]]
