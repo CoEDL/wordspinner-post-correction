@@ -190,7 +190,7 @@ def process_domain(language: List[str],
         write_missing_report(report_type="audio", language=language[0], missing=missing)
 
         # Get the page templates
-        template_soup = get_template(template_path="../templates/content.html")
+        template_soup = get_template(template_path="../templates/entry_page/content.html")
 
         # Change the page title
         article_tag = template_soup.find("title")
@@ -227,7 +227,7 @@ def build_index_file(language: List[str], domains: List[str]):
     menu_tag = build_menu(domains=domains, is_index=True)
 
     # Build the page
-    template_soup = get_template(template_path="../templates/index.html")
+    template_soup = get_template(template_path="../templates/entry_page/index.html")
 
     # Add page title
     title_tag = template_soup.find("title")
@@ -324,7 +324,7 @@ def main():
 
         # Copy assets
         output_language_dir = Path(f"../output/{language[0]}")
-        shutil.copytree("../templates/_assets", output_language_dir.joinpath("_assets"), dirs_exist_ok=True)
+        shutil.copytree("../templates/entry_page/_assets", output_language_dir.joinpath("_assets"), dirs_exist_ok=True)
 
         # Copy the feature image from the content folder
         shutil.copy(f"../content/{language[0]}/feature.jpg", output_language_dir.joinpath("_assets"))
