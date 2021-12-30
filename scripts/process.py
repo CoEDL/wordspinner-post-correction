@@ -210,10 +210,9 @@ def process_domain(language: List[str],
         article_tag.append(content_soup)
 
         # Save the html
-        output_path = Path(f"../output/{language[0]}/{domain_dir}")
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        with output_path.joinpath("index.html").open("w") as html_output_file:
+        domain_output_path = Path(f"../output/{language[0]}/{domain_dir}")
+        domain_output_path.mkdir(parents=True, exist_ok=True)
+        with domain_output_path.joinpath("index.html").open("w") as html_output_file:
             html_output_file.write(template_soup.prettify())
 
 
@@ -274,7 +273,7 @@ def main():
     And add wordspinner zips to content/language/zips/ dir
     """
 
-    debug = True
+    debug = False
 
     if debug:
         languages = [["test", "Test"]]
@@ -293,23 +292,24 @@ def main():
     reports_path = Path("../reports")
     if reports_path.is_dir():
         shutil.rmtree(reports_path)
-    reports_path.joinpath("images").mkdir(parents=True, exist_ok=True)
-    reports_path.joinpath("audio").mkdir(parents=True, exist_ok=True)
+        reports_path.mkdir(parents=True, exist_ok=True)
 
     # Reset output dir
     output_path = Path(f"../output")
     if output_path.is_dir():
         shutil.rmtree(output_path)
+        output_path.mkdir(parents=True, exist_ok=True)
 
     # Build landing page
-    landing_page_path = Path(f"../output/dictionaries/")
-    landing_page_path.mkdir(parents=True, exist_ok=True)
-    with open("../templates/landing_page/index.html") as template_file:
-        tm = Template(template_file.read())
-        html = tm.render(languages=languages)
-        with landing_page_path.joinpath("index.html").open("w") as html_output_file:
-            html_output_file.write(html)
-    shutil.copytree("../templates/landing_page/_assets", landing_page_path.joinpath("_assets"), dirs_exist_ok=True)
+    if not debug:
+        landing_page_path = Path(f"../output/dictionaries/")
+        landing_page_path.mkdir(parents=True, exist_ok=True)
+        with open("../templates/landing_page/index.html") as template_file:
+            tm = Template(template_file.read())
+            html = tm.render(languages=languages)
+            with landing_page_path.joinpath("index.html").open("w") as html_output_file:
+                html_output_file.write(html)
+        shutil.copytree("../templates/landing_page/_assets", landing_page_path.joinpath("_assets"), dirs_exist_ok=True)
 
     for language in languages:
         print(f"==== Doing {language[1]} ====")
