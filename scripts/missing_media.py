@@ -116,6 +116,7 @@ def report_missing_images(media_source_path, backslash_source_path):
                         print("missing", Path(each_file).parts[-1], lx, key, file_name)
                         missing.append(f"{Path(each_file).parts[-1]}, {lx}, {key}, {file_name}")
 
+
     with Path("../reports/missing_images.txt").open("w") as missing_file:
         for item in missing:
             missing_file.write("%s\n" % item)
