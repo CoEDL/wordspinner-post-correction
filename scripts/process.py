@@ -31,16 +31,22 @@ def compile_audio_on_disk_list(audio_dir: Path = ""):
 
 
 def unzip_archives(zip_path: Path = None):
+    """
+    TODO: assumes that all domains have an English equivalent,
+    so the domains list will be a set of names without the english equivalents
+    """
+    print("=== unzip")
     domains = []
     zip_paths = zip_path.glob("**/*.zip")
     for zip_path in zip_paths:
         domain = zip_path.stem
-
-        domains.append(domain.replace("-english", ""))
+        domain_clean_name = domain.replace("(", "").replace(")", "")
+        domains.append(domain_clean_name.replace("-english", ""))
         domains = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(f"../tmp/{domain}")
+            zip_ref.extractall(f"../tmp/{domain_clean_name}")
     domains.sort()
+    print(domains)
     return domains
 
 
@@ -273,7 +279,7 @@ def main():
     And add wordspinner zips to content/language/zips/ dir
     """
 
-    debug = False
+    debug = True
 
     if debug:
         languages = [["test", "Test"]]
