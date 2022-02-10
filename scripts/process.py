@@ -33,18 +33,21 @@ def compile_audio_on_disk_list(audio_dir: Path = ""):
 def unzip_archives(zip_path: Path = None):
     """
     TODO: assumes that all domains have an English equivalent,
-    so the domains list will be a set of names without the english equivalents
+    so the domains list will be a set of names without the english equivalents.
+    Should fix this to be more explicit list of domains and mark which ones do have English
     """
-    print("=== unzip")
     domains = []
     zip_paths = zip_path.glob("**/*.zip")
-    for zip_path in zip_paths:
+
+    for zip_path in sorted(zip_paths):
         domain = zip_path.stem
-        domain_clean_name = domain.replace("(", "").replace(")", "")
-        domains.append(domain_clean_name.replace("-english", ""))
+        domain_clean = domain.replace("(", "").replace(")", "")
+        # Temporarily exclude english zips from the domain list until we have a better way
+        domain_no_english = domain_clean.replace("-english", "")
+        domains.append(domain_no_english)
         domains = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(f"../tmp/{domain_clean_name}")
+            zip_ref.extractall(f"../tmp/{domain_clean}")
     domains.sort()
     print(domains)
     return domains
@@ -72,7 +75,9 @@ def build_menu(domains: List, is_index: bool = False):
 
         link_group_tag.append(link_tag)
         link_group_tag.append(seperator_tag)
+        # TODO check whether there's actually a page for this
         link_group_tag.append(english_link_tag)
+
         menu_tag.append(link_group_tag)
     return menu_tag
 
@@ -83,7 +88,7 @@ def get_template(template_path: str) -> BeautifulSoup:
 
 
 def make_domain_readable(domain: str) -> str:
-    pattern = r"^[a-z]-(.*)"
+    pattern = r"^[a-z]+-(.*)"
     replacemenet = lambda m: m.group(1).replace("-", " ").title()
     return re.sub(pattern, replacemenet, domain)
 
