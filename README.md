@@ -1,13 +1,81 @@
-# Processing
+# Making a website from WordSpinner output
+
+This project converts the output of WordSpinner into a HTML website. WordSpinner itself outputs HTML pages, but those files don't conform to HTML standards, and don't include features such as menus. This project uses the content from the WordSpinner pages, makes responsive HTML with menus, and also corrects issues such as broken links to media etc.
+
+The process happens in a few stages. First, collect the images and audio that the dictionary references; run the script to organise that media in a way that is efficient for web publication, then run a script to process the HTML. Once the scripts have completed, upload to your web server.
+
+This can be done for a single dictionary, or for multiple dictionaries at a time, which may be useful if the multiple dictionaries share image resources (because the media script will copy images from multiple projects into a single media directory).
+
+## Requirements
+
+Requires Python 3 and [Poetry](https://python-poetry.org/docs/)
 
 
-## Flatten the media dir structure
+## 1. Compile media
 
-Combine all images for each dictionary into a single directory. Call it all_images or something. Process the images so they are compressed and optimised (use third party software for this).
+The "flatten media" script will copy JPGs from a specified folder (and subfolders) into a single directory. This is done as a simple (lazy) way to try and reduce the number of missing images in the dictionary content. 
 
-Flatten audio dir structure but keep separate per language, eg 
+The media script will do the same for MP3 audio, but will keep separate directories of audio for each language rather than copying into a single directory. Eg, for a dictionary proejct with two languages, the audio will be copied into two language folders:
 
-For home page content, create a file named `home.html` with the following structure (note that it is just a HTML snippet, not a full page).
+
+1.1. First put all the folders containing your dictionary media into a single `media` folder.  
+1.2. Set up the Python environment  
+1.3. CD into the scripts directory  
+1.4. Edit the flatten media script to specific the language you are working with. See notes in the script.    
+1.5. Run it.
+
+```
+cd /Users/bbb/Sites/dictionaries
+poetry shell
+cd scripts
+python flatten_media_dir.py
+```
+
+1.6. The results will be two folders of media eg:
+```shell
+├── all_audio
+│   ├── bilinarra
+│   │   └── _audio
+│   │        ├── word_01.mp3
+│   │        └── word_02.mp3
+│   └── mudburra
+│       └── _audio
+│            ├── word_03.mp3
+│            └── word_04.mp3
+└── all_images
+    └── _img
+        ├── img_01.jpg
+        ├── img_02.jpg
+        └── img_03.jpg
+```
+
+
+1.7. After the script has run, compress and optimise the images in the new directory (use third party software for this).
+
+
+## 2. Create project structure
+
+2.1. Make a `content` folder in the same place that the `all_audio` and `all_images` folders are.   
+2.2. Inside the new `content` folder, make another folder named (lowercase) with the dictionary language.  
+2.3. Make a `zips` folder in the language folder, and copy the WordSpinner zip files here.  
+
+e.g. for Bilinarra language:
+
+```shell
+├── all_audio
+├── all_images
+└── content
+      └── bilinarra
+             └── zips
+                  ├── a-body-english.zip
+                  ├── a-body.zip
+                  ├── b-people-english.zip
+                  └── b-people.zip
+```
+
+## 3. Making a dictionary home page
+
+3.1. For each language you are building a dictionary for, create a file named `home.html` with the following structure (note that it is just a snippet of HTML, not a full page. I.e. no `<html><head><body>` tags). Add your home page content inside the second `<section>` tag. Save it as `home.html` in the language folder that is inside `content`. 
 
 ```
 <section id="feature_image">
@@ -18,41 +86,55 @@ For home page content, create a file named `home.html` with the following struct
 </section>
 ```
 
-The complete content structure should look like this:
-```  
-- all_images
-    - image01.jpg
-    - image02.jpg
+3.2. Add a `feature.jpg` image (width 800 px) in that folder.
 
-- all_audio
-    - bilinarra
-        - audio01.mp3
-        - audio02.mp3
-    - gurindji
-        - audio03.mp3
-        - audio04.mp3
-- content
-    - bilinarra
-        - feature.jpg
-        - home.html
-        - zips
-            - a-body-english.zip
-            - a-body.zip
-            - b-people-english.zip
-            - b-people.zip
-    - gurindji
-    ...
-- scripts
-    - process.py
-- output
+3.3. The complete content structure should look like this (showing an example of a two-dictionary project):
+```  
+├── all_audio
+│   ├── bilinarra
+│   │   └── _audio
+│   │        ├── word_01.mp3
+│   │        └── word_02.mp3
+│   └── mudburra
+│       └── _audio
+│            ├── word_03.mp3
+│            └── word_04.mp3
+├── all_images
+│   └── _img
+│       ├── img_01.jpg
+│       ├── img_02.jpg
+│       └── img_03.jpg│
+├── content
+│      ├── bilinarra
+│      │      ├── feature.jpg
+│      │      ├── home.html
+│      │      └── zips
+│      │            ├── a-body-english.zip
+│      │            ├── a-body.zip
+│      │            ├── b-people-english.zip
+│      │            └── b-people.zip
+│      │
+│      └── mudburra
+│            ├── feature.jpg
+│            ├── home.html
+│            └── zips
+│                  ├── a-body-english.zip
+│                  ├── a-body.zip
+│                  ├── b-people-english.zip
+│                  └── b-people.zip   
+└── scripts
+       └── process.py
 
 ```
 
-## Prep the HTML
+## 4. Prep the HTML
 
-This script builds html pages for each domain of a selected language, or all languages. The HTML pages include a menu which is generated by the domains. The list of domains is derived from the names of zips. The HTML is responsive, though very basic. The script checks if images or audio are missing and removes tags for media that is missing. Reports are generated with lists of missing names.
+This script builds webpages for each domain of a selected language, or all languages. The HTML pages include a menu which is generated by the dictionary domains. The list of domains is derived from the names of zips. The HTML is responsive, though very basic. The script checks if images or audio are missing and removes tags for media that is missing. Reports are generated with lists of missing names.
 
-To build the html, prepare the environment then run the `process.py` script. Debug first with a language named "test" by changing the debug setting in `main()` to `True`. The script doesn't accept any args, but you can specify or limit the lanuages it builds by changing the languages list in `main()`.
+4.1. To build the html, prepare the Poetry environment, then run the `process.py` script.   
+4.2. Debug first with a language named "test" by changing the debug setting in `main()` to `True`.   
+4.3. The script doesn't accept any args, but you can specify or limit the languages it builds by changing the languages list in `main()`.   
+4.4. Skip the first three commands below if you have just prepared the media (because you should already be in the right dir, with the Poetry environment already created).
 
 ```
 cd /Users/bbb/Sites/dictionaries
@@ -61,17 +143,36 @@ cd scripts
 python process.py
 ```
 
-When it completes, you should have `_assets`, `_audio`, `_img` folders and an index.html file in the output dir 
+4.5. While building, the script checks if media that is linked in the content exists in the media directory. If media is not found, a message is shown in the terminal (see example below) and CSV files are generated in the `reports` dir containing the missing media details.
+
+```shell
+n-description
+. . . missing image salt_c.jpg
+. . . missing image yellow_ochre.jpg
+```
+
+4.6. When it completes, you should have an `output` folder, containing `_assets`, `_audio`, `_img` and domain folders and an index.html file.
+
+```shell
+├── output
+│   └── bilinarra
+│       ├── _assets
+│       ├── _audio
+│       ├── _img
+│       ├── a-body
+│       ├── a-body-english
+│       ├── b-people
+│       ├── b-people-english
+```
+
 
 
 ## Check
 
-To test it locally, browse to the generated pages using local dev domains. Set local dev domain by changing httpd-custom.conf file in `~/Sites` and doing `brew services restart httpd`. 
-
+To test it, set up Apache locally and browse to the generated pages using local dev domains. See guides online for instructions to set up Apache on Mac, such as this one on [grav](https://getgrav.org/blog/macos-monterey-apache-mysql-vhost-apc). Set the local dev domain by changing the `httpd-custom.conf` file in `~/Sites` and doing `brew services restart httpd`. 
 
 
 
 ## TODO
 
 - remove () from the domains and zips?
-- 
