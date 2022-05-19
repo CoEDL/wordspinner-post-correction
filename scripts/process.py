@@ -284,7 +284,7 @@ def main():
     And add wordspinner zips to content/language/zips/ dir
     """
 
-    debug = True
+    debug = False
 
     if debug:
         languages = [["test", "Test"]]
