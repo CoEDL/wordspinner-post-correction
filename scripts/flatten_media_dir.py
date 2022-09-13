@@ -25,10 +25,8 @@ if __name__ == "__main__":
 
     debug = True
 
-    # Note: this is a list of lists. Sorry..
     if debug:
-        # languages = [["test", "Test"]]
-        languages = [["ngarinyman", "Ngarinyman"]]
+        languages = [["test", "Test"]]
     else:
         languages = [
             ["bilinarra", "Bilinarra"],
@@ -37,16 +35,16 @@ if __name__ == "__main__":
             ["ngarinyman", "Ngarinyman"]
         ]
 
-    source_path = Path(f"./media/")
+    source_path = Path(f"../media/")
 
-    target_image_path = Path(f"./all_images/_img")
+    target_image_path = Path(f"../all_images/_img")
     target_image_path.mkdir(parents=True, exist_ok=True)
     process_images(source_path=source_path, target_path=target_image_path)
 
     for language in languages:
-        target_audio_path = Path(f"./all_audio/{language[0]}/_audio")
+        target_audio_path = Path(f"../all_audio/{language[0]}/_audio")
         if target_audio_path.is_dir():
-            shutil.rmtree("./all_audio")
+            shutil.rmtree("../all_audio")
         target_audio_path.mkdir(parents=True, exist_ok=True)
         print(f"\n\n* * * * *\n\n{language[0]}")
         process_audio(source_path=source_path.joinpath(language[0]), target_path=target_audio_path)

@@ -47,7 +47,7 @@ def unzip_archives(zip_path: Path = None):
         domains.append(domain_no_english)
         domains = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(f"./tmp/{domain_clean}")
+            zip_ref.extractall(f"../tmp/{domain_clean}")
     domains.sort()
     print(domains)
     return domains
@@ -94,7 +94,7 @@ def make_domain_readable(domain: str) -> str:
 
 
 def write_missing_report(report_type: str = "", language: str = "", missing: List[List[str]] = None):
-    csv_path = Path(f"./reports/{language}-{report_type}-report.csv")
+    csv_path = Path(f"../reports/{language}-{report_type}-report.csv")
     with csv_path.open("a", newline='') as csvfile:
         headers = ["Language", "Entry", "Src", "Domain"]
         writer = csv.DictWriter(csvfile, delimiter=',', lineterminator='\n', fieldnames=headers)
@@ -132,17 +132,17 @@ def process_domain(language: List[str],
 
         # Fix audio dir in player icons
         audio_player_pattern = "img/audio.png"
-        audio_player_replacement = "./_assets/audio.png"
+        audio_player_replacement = "../_assets/audio.png"
         html = re.sub(audio_player_pattern, audio_player_replacement, html)
 
         # Fix audio player icons
         audio_pattern = r'data-file="img/'
-        audio_replacement = r'data-file="./_audio/'
+        audio_replacement = r'data-file="../_audio/'
         html = re.sub(audio_pattern, audio_replacement, html)
 
         # Change img src path
         image_pattern = r'src="img/'
-        image_replacement = r'src="./_img/'
+        image_replacement = r'src="../_img/'
         html = re.sub(image_pattern, image_replacement, html)
 
         # Try correcting some simple image name problems
@@ -157,7 +157,7 @@ def process_domain(language: List[str],
 
         # Change english file link URLs
         url_pattern = r'/view.php\?domain=([ a-z\(\)]+)\&amp;hash=[\w]+'
-        url_replacement = lambda m: "./" + m.group(1).lower().replace(" ", "-") + "/index.html"
+        url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
         html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
 
         # Make a soup tag for the fixed content
@@ -170,7 +170,7 @@ def process_domain(language: List[str],
         for image in images:
             # Force src to lowercase, this also must happen in the flatten media script
             image["src"] = image["src"].replace(" ", "_").lower()
-            img_name = image["src"].replace("./_img/", "")
+            img_name = image["src"].replace("../_img/", "")
             # Compile list of images and entry info
             entry = image.find_parent("div")
             entry_id = entry["id"]
@@ -189,7 +189,7 @@ def process_domain(language: List[str],
         audios = [audio for audio in content_soup.select(".wsumarcs-entry img.wsumarcs-entrySfx")]
         for audio in audios:
             audio["data-file"] = audio["data-file"].replace(" ", "_").lower()
-            audio_name = audio["data-file"].replace("./_audio/", "")
+            audio_name = audio["data-file"].replace("../_audio/", "")
             entry = audio.find_parent("div")
             entry_id = entry["id"]
             entries.append([entry_id, audio_name, domain_dir])
@@ -201,7 +201,7 @@ def process_domain(language: List[str],
         write_missing_report(report_type="audio", language=language[0], missing=missing)
 
         # Get the page templates
-        template_soup = get_template(template_path="./templates/entry_page/content.html")
+        template_soup = get_template(template_path="../templates/entry_page/content.html")
 
         # Change the page title
         article_tag = template_soup.find("title")
@@ -221,7 +221,7 @@ def process_domain(language: List[str],
         article_tag.append(content_soup)
 
         # Save the html
-        domain_output_path = Path(f"./output/{language[0]}/{domain_dir}")
+        domain_output_path = Path(f"../output/{language[0]}/{domain_dir}")
         domain_output_path.mkdir(parents=True, exist_ok=True)
         with domain_output_path.joinpath("index.html").open("w") as html_output_file:
             html_output_file.write(template_soup.prettify())
@@ -230,14 +230,14 @@ def process_domain(language: List[str],
 def build_index_file(language: List[str], domains: List[str]):
 
     # Slurp in the home page content
-    with Path(f"./content/{language[0]}/home.html").open("r") as content_file:
+    with Path(f"../content/{language[0]}/home.html").open("r") as content_file:
         content_soup = BeautifulSoup(content_file, "html.parser")
 
-    # Build the menu for the index page - it will have different path ./ vs ./ for content pages
+    # Build the menu for the index page - it will have different path ./ vs ../ for content pages
     menu_tag = build_menu(domains=domains, is_index=True)
 
     # Build the page
-    template_soup = get_template(template_path="./templates/entry_page/index.html")
+    template_soup = get_template(template_path="../templates/entry_page/index.html")
 
     # Add page title
     title_tag = template_soup.find("title")
@@ -257,7 +257,7 @@ def build_index_file(language: List[str], domains: List[str]):
     article_tag.append(content_soup)
 
     # Write the index file
-    with Path(f"./output/{language[0]}/index.html").open("w") as index_file:
+    with Path(f"../output/{language[0]}/index.html").open("w") as index_file:
         index_file.write(template_soup.prettify())
 
 
@@ -266,10 +266,10 @@ def iterate_htmls(language: List[str],
                   images_on_disk: List[str],
                   audio_on_disk: List[str]
                   ):
-    # Build the menu for the content pages - they will have different path ./ vs ./ for index page
+    # Build the menu for the content pages - they will have different path ../ vs ./ for index page
     menu_soup = build_menu(domains=domains, is_index=False)
     # Build each domain page
-    html_paths = Path("./tmp").glob("**/*.html")
+    html_paths = Path("../tmp").glob("**/*.html")
     for html_path in html_paths:
         process_domain(language=language,
                        html_path=html_path,
@@ -286,10 +286,8 @@ def main():
 
     debug = True
 
-    # Note: this is a list of lists. Sorry..
     if debug:
-        # languages = [["test", "Test"]]
-        languages = [["ngarinyman", "Ngarinyman"]]
+        languages = [["test", "Test"]]
     else:
         languages = [
             ["bilinarra", "Bilinarra"],
@@ -299,55 +297,55 @@ def main():
         ]
 
     # Images from the media folder have been flattened, combining all images into one dir
-    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"./all_images/"))
+    images_on_disk = compile_images_on_disk_list(image_dir=Path(f"../all_images/"))
 
     # Reset reports dir
-    reports_path = Path("./reports")
+    reports_path = Path("../reports")
     if reports_path.is_dir():
         shutil.rmtree(reports_path)
         reports_path.mkdir(parents=True, exist_ok=True)
 
     # Reset output dir
-    output_path = Path(f"./output")
+    output_path = Path(f"../output")
     if output_path.is_dir():
         shutil.rmtree(output_path)
         output_path.mkdir(parents=True, exist_ok=True)
 
     # Build landing page
     if not debug:
-        landing_page_path = Path(f"./output/dictionaries/")
+        landing_page_path = Path(f"../output/dictionaries/")
         landing_page_path.mkdir(parents=True, exist_ok=True)
-        with open("./templates/landing_page/index.html") as template_file:
+        with open("../templates/landing_page/index.html") as template_file:
             tm = Template(template_file.read())
             html = tm.render(languages=languages)
             with landing_page_path.joinpath("index.html").open("w") as html_output_file:
                 html_output_file.write(html)
-        shutil.copytree("./templates/landing_page/_assets", landing_page_path.joinpath("_assets"), dirs_exist_ok=True)
+        shutil.copytree("../templates/landing_page/_assets", landing_page_path.joinpath("_assets"), dirs_exist_ok=True)
 
     for language in languages:
         print(f"==== Doing {language[1]} ====")
 
         # Audio has been flattened from the media dir into separate audio folders per language
-        audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"./all_audio/{language[0]}/_audio"))
+        audio_on_disk = compile_audio_on_disk_list(audio_dir=Path(f"../all_audio/{language[0]}/_audio"))
 
         # Reset tmp and reports dirs
-        tmp_path = Path("./tmp")
+        tmp_path = Path("../tmp")
         if tmp_path.is_dir():
             shutil.rmtree(tmp_path)
 
         # Copy assets
-        output_language_dir = Path(f"./output/{language[0]}")
-        shutil.copytree("./templates/entry_page/_assets", output_language_dir.joinpath("_assets"), dirs_exist_ok=True)
+        output_language_dir = Path(f"../output/{language[0]}")
+        shutil.copytree("../templates/entry_page/_assets", output_language_dir.joinpath("_assets"), dirs_exist_ok=True)
 
         # Copy the feature image from the content folder
-        shutil.copy(f"./content/{language[0]}/feature.jpg", output_language_dir.joinpath("_assets"))
+        shutil.copy(f"../content/{language[0]}/feature.jpg", output_language_dir.joinpath("_assets"))
 
         # Create media dirs and fill with content that has been flattened
-        shutil.copytree("./all_images/", output_language_dir.joinpath("_img"), dirs_exist_ok=True)
-        shutil.copytree(f"./all_audio/{language[0]}/_audio", output_language_dir.joinpath("_audio"), dirs_exist_ok=True)
+        shutil.copytree("../all_images/_img_sm", output_language_dir.joinpath("_img"), dirs_exist_ok=True)
+        shutil.copytree(f"../all_audio/{language[0]}/_audio", output_language_dir.joinpath("_audio"), dirs_exist_ok=True)
 
         # Prepare the domain zips
-        zip_path = Path(f"./content/{language[0]}/zips")
+        zip_path = Path(f"../content/{language[0]}/zips")
         domains = unzip_archives(zip_path=zip_path)
 
         # Now build the html pages
