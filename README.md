@@ -1,10 +1,9 @@
 # Making a website from WordSpinner output
 
-This project converts the output of WordSpinner into a HTML website. WordSpinner itself outputs HTML pages, but those files don't conform to HTML standards, and don't include features such as menus. This project uses the content from the WordSpinner pages, makes responsive HTML with menus, and also corrects issues such as broken links to media etc.
+This project converts the output of WordSpinner into an HTML website. WordSpinner itself outputs HTML, but the files don't conform to HTML standards, and they don't include features such as menus. This project reads the WordSpinner files and media files and builds HTML websites. The scripts re-arrange the media, build menus, make responsive HTML, and also correct issues such as broken links to media.
 
-The process happens in a few stages. First, collect the images and audio that the dictionary references; run the script to organise that media in a way that is efficient for web publication, then run a script to process the HTML. Once the scripts have completed, upload to your web server.
+Before using the scripts, collect the images and audio that the dictionaries reference and run the `flatten_media_dir` script to organise that media in a way that is efficient for web publication. Then run the `process` script to build the dictionary webpages. Once the scripts have completed, upload them and the media folders to your web server.
 
-This can be done for a single dictionary, or for multiple dictionaries at a time, which may be useful if the multiple dictionaries share image resources (because the media script will copy images from multiple projects into a single media directory).
 
 ## Requirements
 
@@ -13,22 +12,19 @@ Requires Python 3 and [Poetry](https://python-poetry.org/docs/)
 
 ## 1. Compile media
 
-The "flatten media" script will copy JPGs from a specified folder (and subfolders) into a single directory. This is done as a simple (lazy) way to try and reduce the number of missing images in the dictionary content. 
+The "flatten media" script will copy all JPEGs from a specified source folder, and it's subfolders, into a single target directory. This is done to compile all images into a single directory, and reduce missing problems associated with missing images. This approach is a design decision arising from the high degree of image reuse amongst the four dictionaries that were the cause of this project. If you have multiple dictionaries which don't share images, it's probably best to do the build process for one dictionary at a time.    
 
-The media script will do the same for MP3 audio, but will keep separate directories of audio for each language rather than copying into a single directory. Eg, for a dictionary proejct with two languages, the audio will be copied into two language folders:
+The media script will collect MP3 audio from a source fodler, but will keep separate directories of audio for each language rather than copying into a single target directory. Eg, for a dictionary project with two languages, the audio will be copied into two language folders.
 
 
-1.1. First put all the folders containing your dictionary media into a single `media` folder.  
-1.2. Set up the Python environment  
-1.3. CD into the scripts directory  
-1.4. Edit the flatten media script to specific the language you are working with. See notes in the script.    
-1.5. Run it.
+1.1. First put all the folders containing your dictionary media into a `media` folder inside the project. You can also include any misc images; put them in a folder inside media too. 
+1.2. Set up the Python environment. 
+1.3. Edit the `flatten_media_dir` script to specific the language/s you are working with. See notes in the script. This will affect which subfolders the script will attempt to process.    
 
 ```
-cd /Users/bbb/Sites/dictionaries
+cd ~/Sites/dictionaries
 poetry shell
-cd scripts
-python flatten_media_dir.py
+python scripts/flatten_media_dir.py
 ```
 
 1.6. The results will be two folders of media eg:
@@ -59,7 +55,7 @@ The processing script can work on an individual dictionary, or multiple dictiona
 
 2.1. Make a `content` folder in the same place that the `all_audio` and `all_images` folders are.   
 2.2. Inside the new `content` folder, make another folder named (lowercase) with the dictionary language. Repeat for each dictionary that you are building.  
-2.3. Make a `zips` folder in each language folder, and copy the WordSpinner zip files there.  
+2.3. Make a `zips` folder in each language folder, and copy the WordSpinner zip files into that folder.  
 
 e.g. for Bilinarra language:
 
@@ -77,7 +73,7 @@ e.g. for Bilinarra language:
 
 ## 3. Making a dictionary home page
 
-3.1. For each language you are building a dictionary for, create a file named `home.html` with the following structure (note that it is just a snippet of HTML, not a full page. I.e., no doctype or `<html><head><body>` tags). Add your home page content inside the second `<section>` tag. Save it as `home.html` in the language folder that is inside `content`. 
+3.1. For each language you are building a dictionary for, create a file named `home.html` in the `content/language` folder, with the following structure (note that it is just a snippet of HTML, not a full page. I.e., no doctype or `<html><head><body>` tags). Add your home page content inside the second `<section>` tag. Save it as `home.html` in the language folder that is inside `content`. 
 
 ```
 <section id="feature_image">
@@ -139,10 +135,9 @@ This script builds webpages for each domain of a selected language, or all langu
 4.4. If you are happy with the output, change the debug setting to `False`, specify the language names you want to build in `main()` and then re-run the script. 
 
 ```
-cd /Users/bbb/Sites/dictionaries
+cd ~/Sites/dictionaries
 poetry shell
-cd scripts
-python process.py
+python scripts/process.py
 ```
 
 4.5. While building, the script checks if media that is linked in the content exists in the media directory. If media is not found, a message is shown in the terminal (see example below) and CSV files are generated in the `reports` dir containing the missing media details.
