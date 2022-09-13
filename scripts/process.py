@@ -44,6 +44,7 @@ def unzip_archives(zip_path: Path = None):
         domain_clean = domain.replace("(", "").replace(")", "")
         # Temporarily exclude english zips from the domain list until we have a better way
         domain_no_english = domain_clean.replace("-english", "")
+        domain_no_english = domain_clean.replace("-English", "")
         domains.append(domain_no_english)
         domains = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
