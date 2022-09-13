@@ -56,7 +56,7 @@ The processing script can work on an individual dictionary, or multiple dictiona
 
 2.1. Make a `content` folder in the same place that the `all_audio` and `all_images` folders are.   
 2.2. Inside the new `content` folder, make another folder named (lowercase) with the dictionary language. Repeat for each dictionary that you are building.  
-2.3. Make a `zips` folder in each language folder, and copy the WordSpinner zip files into that folder.  
+2.3. Make a `zips` folder in each language folder, and copy the WordSpinner zip files into that folder.
 
 e.g. for Bilinarra language:
 
@@ -71,6 +71,22 @@ e.g. for Bilinarra language:
                   ├── b-people-english.zip
                   └── b-people.zip
 ```
+
+2.4. Manually clean the directory names. If you have names like the following, remove the ID values. Eg, turn this: 
+```python
+P Moving-English-631d18cd528bb.zip
+P Moving-631d18cd528bb.zip
+O Place Names-English-631d18cd528bb.zip
+O Place Names-631d18cd528bb.zip
+```
+into this (try using a bulk name renaming tool rather than doing it by hand):
+```python
+P Moving-English.zip
+P Moving.zip
+O Place Names-English.zip
+O Place Names.zip
+```
+
 
 ## 3. Making a dictionary home page
 
