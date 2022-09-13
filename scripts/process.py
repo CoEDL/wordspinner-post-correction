@@ -287,7 +287,7 @@ def main():
     debug = True
 
     if debug:
-        languages = [["test", "Test"]]
+        languages = [["ngarinyman", "Ngarinyman"]]
     else:
         languages = [
             ["bilinarra", "Bilinarra"],

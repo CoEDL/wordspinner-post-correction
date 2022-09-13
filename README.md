@@ -24,7 +24,8 @@ The media script will collect MP3 audio from a source fodler, but will keep sepa
 ```
 cd ~/Sites/dictionaries
 poetry shell
-python scripts/flatten_media_dir.py
+cd scripts
+python flatten_media_dir.py
 ```
 
 1.6. The results will be two folders of media eg:
@@ -137,7 +138,8 @@ This script builds webpages for each domain of a selected language, or all langu
 ```
 cd ~/Sites/dictionaries
 poetry shell
-python scripts/process.py
+cd scripts
+python process.py
 ```
 
 4.5. While building, the script checks if media that is linked in the content exists in the media directory. If media is not found, a message is shown in the terminal (see example below) and CSV files are generated in the `reports` dir containing the missing media details.
