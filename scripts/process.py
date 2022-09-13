@@ -68,7 +68,7 @@ def build_menu(domains: List, is_index: bool = False):
     # This is awful but no worse than all the rest of it :(
     if "az" in domains:
         domains.remove("az")
-        domains.insert(0, "AZ")
+        domains.insert(0, "az")
     if "az-english" in domains:
         domains.remove("az-english")
         domains.insert(0, "az-english")
@@ -309,10 +309,10 @@ def main():
     Normalise zip names
     """
 
-    debug = True
+    debug = False
 
     if debug:
-        languages = [["ngarinyman", "Ngarinyman"]]
+        languages = [["test", "Test"]]
     else:
         languages = [
             ["bilinarra", "Bilinarra"],

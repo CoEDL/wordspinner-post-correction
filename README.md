@@ -72,21 +72,24 @@ e.g. for Bilinarra language:
                   └── b-people.zip
 ```
 
-2.4. Manually clean the directory names. If you have names like the following, remove the ID values. Eg, turn this: 
+2.4. Manually clean the directory names. If you have names like the following, clean them from this: 
 ```python
 P Moving-English-631d18cd528bb.zip
 P Moving-631d18cd528bb.zip
 O Place Names-English-631d18cd528bb.zip
 O Place Names-631d18cd528bb.zip
 ```
-into this (try using a bulk name renaming tool rather than doing it by hand):
+into this:
 ```python
-P Moving-English.zip
-P Moving.zip
-O Place Names-English.zip
-O Place Names.zip
+p-moving-english.zip
+p-moving.zip
+o-place-names-english.zip
+o-place-names.zip
 ```
 
+Remove the ID values, make lowercase and replace spaces with hyphens. Try using a bulk name renaming tool rather than doing it by hand.
+
+TODO: add info about AZ
 
 ## 3. Making a dictionary home page
 
