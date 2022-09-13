@@ -44,7 +44,6 @@ def unzip_archives(zip_path: Path = None):
         domain_clean = domain.replace("(", "").replace(")", "")
         # Temporarily exclude english zips from the domain list until we have a better way
         domain_no_english = domain_clean.replace("-english", "")
-        domain_no_english = domain_clean.replace("-English", "")
         domains.append(domain_no_english)
         domains = list(set(domains))
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
@@ -54,7 +53,27 @@ def unzip_archives(zip_path: Path = None):
     return domains
 
 
+def normalise_zip_names(dir):
+    """
+    Make the zips lowercase and get rid of spaces
+    """
+    # This glob string will get the subfolders inside the zips dir
+    for child in sorted(dir.glob('**/*')):
+        # Make the zips lowercase, and replace space with underscore
+        child.rename(Path.joinpath(dir, child.name.lower().replace(" ", "-")))
+
+
 def build_menu(domains: List, is_index: bool = False):
+    # Remove AZ and AZ English and put them back at the start of the list for better UX
+    # This is awful but no worse than all the rest of it :(
+    if "az" in domains:
+        domains.remove("az")
+        domains.insert(0, "AZ")
+    if "az-english" in domains:
+        domains.remove("az-english")
+        domains.insert(0, "az-english")
+    print("DOMAINS", domains)
+
     subdir = "./" if is_index else "../"
     menu_soup = BeautifulSoup('<ul id="menu"></ul>', "html.parser")
     menu_tag = menu_soup.ul
@@ -89,9 +108,10 @@ def get_template(template_path: str) -> BeautifulSoup:
 
 
 def make_domain_readable(domain: str) -> str:
+    print("domain:", domain)
     pattern = r"^[a-z]+-(.*)"
-    replacemenet = lambda m: m.group(1).replace("-", " ").title()
-    return re.sub(pattern, replacemenet, domain)
+    replacement = lambda m: m.group(1).replace("-", " ").title()
+    return re.sub(pattern, replacement, domain)
 
 
 def write_missing_report(report_type: str = "", language: str = "", missing: List[List[str]] = None):
@@ -115,7 +135,7 @@ def process_domain(language: List[str],
                    audio_on_disk: List[str]
                    ):
     domain_dir = html_path.parts[-2]
-    print(domain_dir)
+    print("domain_dir:", domain_dir)
     with open(html_path) as html_file:
         # This is the wordspinner generated content. It needs to be cleaned
         content_soup = BeautifulSoup(html_file, "html.parser")
@@ -157,8 +177,11 @@ def process_domain(language: List[str],
         html = re.sub(anchor_pattern, anchor_replacement, html, flags=re.IGNORECASE)
 
         # Change english file link URLs
-        url_pattern = r'/view.php\?domain=([ a-z\(\)]+)\&amp;hash=[\w]+'
+
+        # url_pattern = r'/view.php\?domain=([ a-z\(\)]+)\&amp;hash=[\w]+'
+        url_pattern =   r'\/?view.php\?domain=([ a-z]+)+\&amp;hash=[\w]+'
         url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
+
         html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
 
         # Make a soup tag for the fixed content
@@ -283,6 +306,7 @@ def main():
     """
     Before running this script, do the flatten_media_dir script
     And add wordspinner zips to content/language/zips/ dir
+    Normalise zip names
     """
 
     debug = True
@@ -347,6 +371,8 @@ def main():
 
         # Prepare the domain zips
         zip_path = Path(f"../content/{language[0]}/zips")
+        normalise_zip_names(zip_path)
+
         domains = unzip_archives(zip_path=zip_path)
 
         # Now build the html pages
