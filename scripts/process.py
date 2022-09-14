@@ -49,7 +49,6 @@ def unzip_archives(zip_path: Path = None):
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(f"../tmp/{domain_clean}")
     domains.sort()
-    print(domains)
     return domains
 
 
@@ -72,7 +71,6 @@ def build_menu(domains: List, is_index: bool = False):
     if "az-english" in domains:
         domains.remove("az-english")
         domains.insert(0, "az-english")
-    print("DOMAINS", domains)
 
     subdir = "./" if is_index else "../"
     menu_soup = BeautifulSoup('<ul id="menu"></ul>', "html.parser")
@@ -108,10 +106,16 @@ def get_template(template_path: str) -> BeautifulSoup:
 
 
 def make_domain_readable(domain: str) -> str:
-    print("domain:", domain)
+    # Chop off leading characters and dash and replace other dashes with spaces
+    # eg a-body-parts becomes body parts
     pattern = r"^[a-z]+-(.*)"
-    replacement = lambda m: m.group(1).replace("-", " ").title()
-    return re.sub(pattern, replacement, domain)
+    replacement = lambda m: m.group(1).replace("-", " ")
+    domain = re.sub(pattern, replacement, domain)
+    # Horrible hack to change the AZ category title to something more apparent
+    if domain == "az":
+        domain = "index"
+    domain = domain.title()
+    return domain
 
 
 def write_missing_report(report_type: str = "", language: str = "", missing: List[List[str]] = None):
@@ -135,7 +139,6 @@ def process_domain(language: List[str],
                    audio_on_disk: List[str]
                    ):
     domain_dir = html_path.parts[-2]
-    print("domain_dir:", domain_dir)
     with open(html_path) as html_file:
         # This is the wordspinner generated content. It needs to be cleaned
         content_soup = BeautifulSoup(html_file, "html.parser")
@@ -176,11 +179,12 @@ def process_domain(language: List[str],
         anchor_replacement = r'<div class="wsumarcs-entry" id="\1">'
         html = re.sub(anchor_pattern, anchor_replacement, html, flags=re.IGNORECASE)
 
-        # Change english file link URLs
-
-        # url_pattern = r'/view.php\?domain=([ a-z\(\)]+)\&amp;hash=[\w]+'
-        url_pattern =   r'\/?view.php\?domain=([ a-z]+)+\&amp;hash=[\w]+'
-        url_replacement = lambda m: "../" + m.group(1).lower().replace(" ", "-") + "/index.html"
+        # Change link URLs on English pages from original eg /view.php?domain=AZ&hash=631d18cd528bb#wirringarna
+        # to ../az/index.html#wirringarna
+        # Also replace spaces with dashes, and strip ()
+        url_pattern = r'\/?view.php\?domain=([ a-z0-9%()]+)+\&amp;hash=[\w]+'
+        url_replacement = lambda m: "../" + m.group(1) \
+            .lower().replace(" ", "-").replace("(", "").replace(")", "") + "/index.html"
 
         html = re.sub(url_pattern, url_replacement, html, flags=re.IGNORECASE)
 
@@ -237,7 +241,7 @@ def process_domain(language: List[str],
 
         # Change the page header
         header_tag = template_soup.find("header")
-        header_tag.string = make_domain_readable(domain_dir)
+        header_tag.string = f"{language[1]} - {make_domain_readable(domain_dir)}"
 
         # Insert the content
         article_tag = template_soup.find("article")
@@ -309,10 +313,10 @@ def main():
     Normalise zip names
     """
 
-    debug = False
+    debug = True
 
     if debug:
-        languages = [["test", "Test"]]
+        languages = [["ngarinyman", "Ngarinyman"]]
     else:
         languages = [
             ["bilinarra", "Bilinarra"],
