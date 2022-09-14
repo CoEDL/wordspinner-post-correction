@@ -23,7 +23,7 @@ def process_audio(source_path: Path = None, target_path: Path = None):
 
 if __name__ == "__main__":
 
-    debug = False
+    debug = True
 
     if debug:
         languages = [["test", "Test"]]
